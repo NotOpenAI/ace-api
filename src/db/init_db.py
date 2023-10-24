@@ -1,5 +1,5 @@
 import psycopg2
-
+from psycopg2 import errors
 
 def connect():
     # connection establishment
@@ -17,15 +17,23 @@ def connect():
     cursor = conn.cursor()
     return cursor, conn
 
+def create_database(cursor, database_name):
+    try:
+        # Query to create a database if it doesn't exist
+        sql = f"CREATE DATABASE {database_name}"
+        cursor.execute(sql)
+        print(f"Database '{database_name}' has been created successfully!")
+    except errors.DuplicateDatabase:
+        print(f"Database '{database_name}' already exists. No action taken.")
+    except Exception as e:
+        print(f"Error creating database: {e}")
 
 def main():
     cursor, conn = connect()
-    # query to create a database
-    sql = ''' CREATE database bids ''';
+    database_name = "bids"
 
-    # executing above query
-    cursor.execute(sql)
-    print("Database has been created successfully !!");
+    # Call the create_database function
+    create_database(cursor, database_name)
 
     # Closing the connection
     conn.close()
