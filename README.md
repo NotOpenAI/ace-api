@@ -17,7 +17,7 @@ poetry --version
 Go to your root directory and run:
 
 ```
-poetry install
+poetry i
 ```
 
 ## Start Development Server
