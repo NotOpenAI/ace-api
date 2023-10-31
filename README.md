@@ -7,23 +7,29 @@ Make sure **Python3** is available on your machine. This project is using versio
 The following steps outline additional setups to work on this project.
 
 ## Install Dependencies
+Make sure you have [Poetry](https://python-poetry.org/docs/#installation) installed
+
+You can verify it by running:
+```
+poetry --version
+```
 
 Go to your root directory and run:
 
 ```
-pip3 install -r requirements.txt
+poetry install
 ```
 
 ## Start Development Server
 
-Navigate to the `src` directory and run:
+Navigate to the root directory and run:
 ```
-uvicorn main:app --reload
+poetry start
 ```
 to see live changes. This will start the application at `localhost:8000`
 
 # Pre-commit
 Make sure your run the Python formatter frm the root directory before committing:
 ```
-black .
+poetry format
 ```
