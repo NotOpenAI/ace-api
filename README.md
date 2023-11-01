@@ -14,7 +14,7 @@ You can verify it by running:
 poetry --version
 ```
 
-Go to your root directory and run:
+Then go to your root directory and run:
 
 ```
 poetry i
@@ -27,9 +27,3 @@ Navigate to the root directory and run:
 poetry start
 ```
 to see live changes. This will start the application at `localhost:8000`
-
-# Pre-commit
-Make sure your run the Python formatter frm the root directory before committing:
-```
-poetry format
-```
