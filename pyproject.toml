@@ -21,7 +21,7 @@ poetry_command = ""
 [tool.poe.tasks]
 i = [
   { cmd = "poetry install" },
-  { cmd = "pre-commit install"}
+  { cmd = "pre-commit install" }
 ]
 start = "uvicorn --app-dir=src main:app --reload"
 format = "black src"
