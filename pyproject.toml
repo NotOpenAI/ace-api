@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "ace-api"
+version = "0.1.0"
+description = "API for AI Cost Estimation Project"
+authors = ["axcisd <axcisd@rit.edu>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.104.0"
+uvicorn = "^0.23.2"
+pre-commit = "^3.5.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.10.0"
+
+[tool.poe]
+poetry_command = ""
+
+[tool.poe.tasks]
+i = [
+  { cmd = "poetry install" },
+  { cmd = "pre-commit install" }
+]
+start = "uvicorn --app-dir=src main:app --reload"
+format = "black src"
+format_check = "black --check src"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

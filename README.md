@@ -1,29 +1,33 @@
 # Prerequisites
 
-Make sure **Python3** is available on your machine. This project is using version 3.11
+Make sure **Python3** is available on your machine. This project is using version 3.11. If you have multiple versions of Python, you can use a Python version manager such as [pyenv](https://github.com/pyenv/pyenv).
 
 # Development
 
 The following steps outline additional setups to work on this project.
 
 ## Install Dependencies
+Make sure you have [pipx](https://pypa.github.io/pipx/) installed (requires pip 19.0+).
 
-Go to your root directory and run:
+You can verify it by running:
+```
+pipx --version
+```
+
+Then install [poethepoet](https://poethepoet.natn.io/index.html) and [poetry](https://python-poetry.org/docs/master/) by running:
+```
+pipx install poethepoet && pipx install poetry
+```
+Finally, go to your root directory and run:
 
 ```
-pip3 install -r requirements.txt
+poe i
 ```
-
+to install the dependencies and pre-commit hooks. You only have to run this once unless new packages have been added.
 ## Start Development Server
 
-Navigate to the `src` directory and run:
+Navigate to the root directory and run:
 ```
-uvicorn main:app --reload
+poe start
 ```
 to see live changes. This will start the application at `localhost:8000`
-
-# Pre-commit
-Make sure your run the Python formatter frm the root directory before committing:
-```
-black .
-```
