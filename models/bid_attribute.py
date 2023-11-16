@@ -13,8 +13,8 @@ class BidAttribute(Base):
     __tablename__ = "bid_attribute"
     __table_args__ = (
         CheckConstraint(
-            "(num_val is null AND attribute_option_id is not null) or (num_val is not null AND attribute_option_id is null)",
-            name="one_required",
+            "(num_val IS NULL AND attribute_option_id IS NOT NULL) OR (num_val IS NOT NULL AND attribute_option_id IS NULL)",
+            name="only_one_required",
         ),
     )
     id: Mapped[intpk] = mapped_column()

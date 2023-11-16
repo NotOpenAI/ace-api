@@ -1,7 +1,9 @@
-"""Add initial tables
-Revision ID: a9a95f34a19b
+"""add initial tables
+
+Revision ID: fbccb0f8be71
 Revises: 
-Create Date: 2023-11-07 23:37:25.895561
+Create Date: 2023-11-09 21:40:08.278098
+
 """
 from typing import Sequence, Union
 
@@ -10,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "a9a95f34a19b"
+revision: str = "fbccb0f8be71"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -219,8 +221,8 @@ def upgrade() -> None:
         ),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.CheckConstraint(
-            "(num_val is null AND attribute_option_id is not null) or (num_val is not null AND attribute_option_id is null)",
-            name="one_required",
+            "(num_val IS NULL AND attribute_option_id IS NOT NULL) OR (num_val IS NOT NULL AND attribute_option_id IS NULL)",
+            name="only_one_required",
         ),
         sa.ForeignKeyConstraint(
             ["attribute_id"],

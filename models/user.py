@@ -8,11 +8,12 @@ from db.types import (
     create_date,
     update_date,
 )
-from typing import Set, TYPE_CHECKING
+from typing import List, TYPE_CHECKING
 
 
 if TYPE_CHECKING:
     from .user_role import UserRole
+    from .lookup.role import Role
 
 
 class User(Base):
@@ -23,6 +24,9 @@ class User(Base):
     password: Mapped[str_255] = mapped_column()
     first_name: Mapped[str_50] = mapped_column()
     last_name: Mapped[str_50] = mapped_column()
-    roles: Mapped[Set["UserRole"]] = relationship(back_populates="user")
+    role_associations: Mapped[List["UserRole"]] = relationship(back_populates="user")
+    roles: Mapped[List["Role"]] = relationship(
+        secondary="user_role", back_populates="users"
+    )
     created_at: Mapped[create_date] = mapped_column()
     updated_at: Mapped[update_date] = mapped_column()

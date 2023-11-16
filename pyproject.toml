@@ -16,6 +16,8 @@ sqlalchemy = "^2.0.23"
 psycopg2-binary = "^2.9.9"
 python-dateutil = "^2.8.2"
 python-dotenv = "^1.0.0"
+passlib = {extras = ["bcrypyt"], version = "^1.7.4"}
+pydantic-settings = "^2.0.3"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.10.0"
@@ -28,7 +30,7 @@ i = [
   { cmd = "poetry install" },
   { cmd = "pre-commit install" }
 ]
-start = "uvicorn --app-dir=src main:app --reload"
+start = "uvicorn main:app --reload"
 format = "black ."
 format_check = "black --check ."
 

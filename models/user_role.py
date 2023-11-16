@@ -17,5 +17,5 @@ class UserRole(Base):
     role_id: Mapped[intpk] = mapped_column(ForeignKey("lookup.role.id"))
     created_at: Mapped[create_date] = mapped_column()
     updated_at: Mapped[update_date] = mapped_column()
-    role: Mapped["Role"] = relationship(back_populates="role")
-    user: Mapped["User"] = relationship(back_populates="user")
+    role: Mapped["Role"] = relationship(back_populates="user_associations")
+    user: Mapped["User"] = relationship(back_populates="role_associations")
