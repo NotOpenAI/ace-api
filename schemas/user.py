@@ -1,7 +1,6 @@
 from db.types import dt
 from pydantic import BaseModel
 from schemas.role import Role
-from typing import Optional
 
 
 class UserBase(BaseModel):
@@ -12,17 +11,19 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
+    role_ids: list[int] = []
 
 
-class UserUpdate(UserBase):
-    password: Optional[str] = None
+class UserUpdate(BaseModel):
+    password: str | None = None
+    username: str | None = None
 
 
 class User(UserBase):
     id: int
     roles: list[Role] = []
     created_at: dt
-    updated_at: Optional[dt]
+    updated_at: dt | None
 
     class Config:
         from_attributes = True

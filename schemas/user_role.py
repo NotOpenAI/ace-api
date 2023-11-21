@@ -7,7 +7,8 @@ class UserRoleBase(BaseModel):
     role_id: int
 
 
-class UserRoleBulkCreate(BaseModel):
+class UserRoleBulkUpdate(BaseModel):
+    user_id: int
     role_ids: list[int]
 
 

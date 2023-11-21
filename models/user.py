@@ -26,7 +26,7 @@ class User(Base):
     last_name: Mapped[str_50] = mapped_column()
     role_associations: Mapped[List["UserRole"]] = relationship(back_populates="user")
     roles: Mapped[List["Role"]] = relationship(
-        secondary="user_role", back_populates="users"
+        secondary="user_role", back_populates="users", viewonly=True
     )
     created_at: Mapped[create_date] = mapped_column()
     updated_at: Mapped[update_date] = mapped_column()

@@ -1,8 +1,10 @@
 from sqlalchemy.orm import Session
 from schemas.user import UserCreate, UserUpdate
 from models.user import User
+from models.user_role import UserRole
 from core.security import get_password_hash
 from fastapi.encoders import jsonable_encoder
+from sqlalchemy import select
 
 
 def create(db: Session, user: UserCreate):
@@ -12,19 +14,19 @@ def create(db: Session, user: UserCreate):
         password=hashed_password,
         first_name=user.first_name,
         last_name=user.last_name,
+        role_associations=[UserRole(role_id=role) for role in user.role_ids],
     )
+
     db.add(user_obj)
-    db.commit()
-    db.refresh(user_obj)
     return user_obj
 
 
 def get_by_id(db: Session, user_id: int):
-    return db.query(User).filter(User.id == user_id).first()
+    return db.scalars(select(User).where(User.id == user_id)).first()
 
 
 def get_by_username(db: Session, username: str):
-    return db.query(User).filter(User.username == username).first()
+    return db.scalars(select(User).where(User.username == username)).first()
 
 
 def update(db: Session, user: User, update_in: UserUpdate):
@@ -34,14 +36,14 @@ def update(db: Session, user: User, update_in: UserUpdate):
 
     for field in db_obj:
         if field in update_obj:
+            # hash password before saving in db
+            if field == "password":
+                hashed_password = get_password_hash(update_obj["password"])
+                setattr(user, field, hashed_password)
+                continue
+
+            # otherwise just update in db
             setattr(user, field, update_obj[field])
 
-    # make sure password is hashed before updating
-    if update_obj["password"]:
-        hashed_password = get_password_hash(update_obj["password"])
-        setattr(user, "password", hashed_password)
-
     db.add(user)
-    db.commit()
-    db.refresh(user)
     return user

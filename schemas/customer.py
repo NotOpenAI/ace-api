@@ -1,11 +1,12 @@
 from db.types import dt
 from pydantic import BaseModel
-from schemas.customer_contact import CustomerContact
+from pydantic_extra_types.phone_numbers import PhoneNumber
+from schemas.customer_contact import CustomerContactCreate, CustomerContact
 
 
 class CustomerBase(BaseModel):
     name: str
-    phone: str
+    phone: PhoneNumber
     address: str
     owner: str
     market: str
@@ -14,16 +15,22 @@ class CustomerBase(BaseModel):
 
 
 class CustomerCreate(CustomerBase):
-    pass
+    contacts: list[CustomerContactCreate]
 
 
-class CustomerUpdate(CustomerBase):
-    pass
+class CustomerUpdate(BaseModel):
+    name: str | None = None
+    phone: PhoneNumber | None = None
+    address: str | None = None
+    owner: str | None = None
+    market: str | None = None
+    reputation: int | None = None
+    fin_health: int | None = None
 
 
 class Customer(CustomerBase):
     id: int
-    roles: list[CustomerContact] = []
+    contacts: list[CustomerContact] = []
     created_at: dt
     updated_at: dt | None
 

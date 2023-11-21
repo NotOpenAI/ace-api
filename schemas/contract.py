@@ -1,15 +1,15 @@
 from pydantic import BaseModel
 
 
-class RoleBase(BaseModel):
+class ContractBase(BaseModel):
     name: str
 
 
-class RoleCreate(RoleBase):
+class ContractCreate(ContractBase):
     pass
 
 
-class Role(RoleBase):
+class Contract(ContractBase):
     id: int
 
     class Config:
