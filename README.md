@@ -24,6 +24,10 @@ Finally, go to your root directory and run:
 poe i
 ```
 to install the dependencies and pre-commit hooks. You only have to run this once unless new packages have been added.
+
+## Connect to Database
+Create a **.env** file in the root directory and enter the credentials in the same format as **.env.example**
+
 ## Start Development Server
 
 Navigate to the root directory and run:
