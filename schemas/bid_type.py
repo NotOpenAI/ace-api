@@ -1,15 +1,15 @@
 from schemas.base import GlobalBase
 
 
-class ContractBase(GlobalBase):
+class BidTypeBase(GlobalBase):
     name: str
 
 
-class ContractCreate(ContractBase):
+class BidTypeCreate(BidTypeBase):
     pass
 
 
-class Contract(ContractBase):
+class BidType(BidTypeBase):
     id: int
 
     class Config:

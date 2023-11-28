@@ -5,10 +5,10 @@ from sqlalchemy import select
 
 
 def create(db: Session, contract_type: ContractCreate):
-    contract = Contract(name=contract_type.name)
+    contract = Contract(**contract_type.model_dump())
     db.add(contract)
     return contract
 
 
-def get_all_contract_types(db: Session):
+def get(db: Session):
     return db.scalars(select(Contract)).all()

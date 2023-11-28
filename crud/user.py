@@ -11,7 +11,7 @@ def create(db: Session, user: UserCreate):
     hashed_password = get_password_hash(user.password)
     user_obj = User(
         username=user.username,
-        password=hashed_password,
+        hashed_password=hashed_password,
         first_name=user.first_name,
         last_name=user.last_name,
         role_associations=[UserRole(role_id=role) for role in user.role_ids],
@@ -29,6 +29,10 @@ def get_by_username(db: Session, username: str):
     return db.scalars(select(User).where(User.username == username)).first()
 
 
+def get_all(db: Session):
+    return db.scalars(select(User)).all()
+
+
 def update(db: Session, user: User, update_in: UserUpdate):
     # convert to dictionary
     db_obj = jsonable_encoder(user)
@@ -39,7 +43,7 @@ def update(db: Session, user: User, update_in: UserUpdate):
             # hash password before saving in db
             if field == "password":
                 hashed_password = get_password_hash(update_obj["password"])
-                setattr(user, field, hashed_password)
+                setattr(user, "hashed_password", hashed_password)
                 continue
 
             # otherwise just update in db

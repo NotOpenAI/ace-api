@@ -1,7 +1,8 @@
-from pydantic import BaseModel
+from schemas.base import GlobalBase
 
 
-class RoleBase(BaseModel):
+class RoleBase(GlobalBase):
+    id: int | None = None
     name: str
 
 
@@ -10,7 +11,5 @@ class RoleCreate(RoleBase):
 
 
 class Role(RoleBase):
-    id: int
-
     class Config:
         from_attributes = True

@@ -9,6 +9,5 @@ from .customer_contact import CustomerContact
 from .lookup.bid_type import BidType
 from .lookup.role import Role
 from .lookup.contract import Contract
-from .lookup.attribute import Attribute
-from .lookup.attribute_type import AttributeType
-from .lookup.attribute_option import AttributeOption
+from .lookup.bid_attribute_type import BidAttributeType
+from .lookup.bid_attribute_option import BidAttributeOption

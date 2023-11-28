@@ -1,14 +1,13 @@
-from pydantic import BaseModel
+from schemas.base import GlobalBase
 from db.types import dt
 
 
-class UserRoleBase(BaseModel):
+class UserRoleBase(GlobalBase):
     user_id: int
     role_id: int
 
 
-class UserRoleBulkUpdate(BaseModel):
-    user_id: int
+class UserRoleBulkUpdate(GlobalBase):
     role_ids: list[int]
 
 

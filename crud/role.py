@@ -5,7 +5,7 @@ from sqlalchemy import select
 
 
 def create(db: Session, role: RoleCreate):
-    role_obj = Role(name=role.name)
+    role_obj = Role(**role.model_dump())
     db.add(role_obj)
     return role_obj
 

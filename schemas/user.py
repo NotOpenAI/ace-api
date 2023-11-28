@@ -1,9 +1,9 @@
 from db.types import dt
-from pydantic import BaseModel
+from schemas.base import GlobalBase
 from schemas.role import Role
 
 
-class UserBase(BaseModel):
+class UserBase(GlobalBase):
     username: str
     first_name: str
     last_name: str
@@ -14,14 +14,23 @@ class UserCreate(UserBase):
     role_ids: list[int] = []
 
 
-class UserUpdate(BaseModel):
+class UserUpdate(GlobalBase):
     password: str | None = None
     username: str | None = None
 
 
-class User(UserBase):
+class UserFull(UserBase):
     id: int
     roles: list[Role] = []
+    created_at: dt
+    updated_at: dt | None
+
+    class Config:
+        from_attributes = True
+
+
+class User(UserBase):
+    id: int
     created_at: dt
     updated_at: dt | None
 

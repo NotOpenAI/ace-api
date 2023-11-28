@@ -1,13 +1,12 @@
-from db.types import dt
-from pydantic import BaseModel, EmailStr
-from typing import Optional
+from pydantic import EmailStr
 from pydantic_extra_types.phone_numbers import PhoneNumber
+from schemas.base import GlobalBase
 
 
-class CustomerContactBase(BaseModel):
+class CustomerContactBase(GlobalBase):
     name: str
-    email: EmailStr | None
-    phone: PhoneNumber | None
+    email: EmailStr | None = None
+    phone: PhoneNumber | None = None
 
 
 class CustomerContactCreate(CustomerContactBase):
@@ -20,8 +19,6 @@ class CustomerContactCreateDB(CustomerContactBase):
 
 class CustomerContact(CustomerContactBase):
     id: int
-    created_at: dt
-    updated_at: dt | None
 
     class Config:
         from_attributes = True
