@@ -35,3 +35,10 @@ Navigate to the root directory and run:
 poe start
 ```
 to see live changes. This will start the application at `localhost:8000`
+
+# Database Migrations
+
+We are using [alembic](https://alembic.sqlalchemy.org/en/latest) for database migrations. If are using a local database and want to push your latest database updates, you can run the command:
+```
+poetry run alembic upgrade head
+```
