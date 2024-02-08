@@ -32,6 +32,6 @@ class Customer(Base):
     fin_health: Mapped[int] = mapped_column(Integer)
     bids: Mapped[List["Bid"]] = relationship(back_populates="customer")
     projects: Mapped[List["Project"]] = relationship(back_populates="customer")
-    contacts: Mapped[List["CustomerContact"]] = relationship()
+    contacts: Mapped[List["CustomerContact"]] = relationship(back_populates="customer")
     created_at: Mapped[create_date] = mapped_column()
     updated_at: Mapped[update_date] = mapped_column()

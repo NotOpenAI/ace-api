@@ -9,7 +9,6 @@ from models.lookup.contract import Contract
 from models.project import Project
 from models.bid_estimate import BidEstimate
 from models.bid_attribute import BidAttribute
-from models.lookup.attribute import Attribute
 from models.customer_contact import CustomerContact
-from models.lookup.attribute_option import AttributeOption
-from models.lookup.attribute_type import AttributeType
+from models.lookup.bid_attribute_option import BidAttributeOption
+from models.lookup.bid_attribute_type import BidAttributeType
