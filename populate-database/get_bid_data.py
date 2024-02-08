@@ -26,7 +26,6 @@ for i in range(2, workbook_contents.max_row + 1):
                 cell_value = str(random.randint(0, 3))
         bid_data[column_headers[j - 1]] = cell_value
     bids.append(bid_data)
-    print(str(column_headers[j - 1]) + ": " + str(cell_value))
 
 for bid in bids:
     for key in bid.keys():
