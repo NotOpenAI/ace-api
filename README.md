@@ -50,3 +50,24 @@ Then to "push" your changes to the database, run the command:
 ```
 poetry run alembic upgrade head
 ```
+
+## Initialize Database Locally Using Docker
+
+Follow these steps to get the db tables setup on a local docker container:
+
+    1. Install the docker engine: 
+        https://docs.docker.com/engine/install/
+    2. Add docker to path.  It will look something like: 
+        C:\Program Files\Docker\Docker\resources\bin
+    3. Create a dockerhub account: 
+        https://hub.docker.com/
+    4. Execute the following command using your dockerhub credentials
+        docker login
+    5. Execute the following command to create the local database container:
+        docker run --name ace-db -p 5432:5432 -e POSTGRES_PASSWORD=pass -d postgres
+    6. Edit line 20 of alembic/env.py to make exactly:
+        DB_URL = f"postgresql://postgres:pass@localhost:5432/postgres"
+    7. Run the following commands to populate the containerized database with the tables:
+        alembic upgrade head
+        poetry run alembic revision --autogenerate -m "example revision message"
+        poetry run alembic upgrade head
