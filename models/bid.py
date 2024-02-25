@@ -9,8 +9,6 @@ from sqlalchemy.ext.hybrid import hybrid_property
 if TYPE_CHECKING:
     from .user import User
     from .customer import Customer
-    from .lookup.bid_type import BidType
-    from .lookup.contract import Contract
     from .project import Project
     from .bid_estimate import BidEstimate
     from .bid_attribute import BidAttribute
@@ -23,15 +21,11 @@ class Bid(Base):
     bid_manager: Mapped["User"] = relationship(back_populates="bids")
     approved: Mapped[bool] = mapped_column(default=False)
     lead: Mapped[str_100] = mapped_column()
-    bid_type_id: Mapped[int] = mapped_column(ForeignKey("lookup.bid_type.id"))
-    bid_type: Mapped["BidType"] = relationship()
     customer_id: Mapped[int] = mapped_column(ForeignKey("customer.id"))
     customer: Mapped["Customer"] = relationship(back_populates="bids")
     margin: Mapped[int] = mapped_column()  # desired margin in %
     due_date: Mapped[dt] = mapped_column()
     final_amt: Mapped[currency] = mapped_column()
-    contract_id: Mapped[int] = mapped_column(ForeignKey("lookup.contract.id"))
-    contract_type: Mapped["Contract"] = relationship()
     project: Mapped["Project"] = relationship(back_populates="bid")
     estimated_data: Mapped["BidEstimate"] = relationship(back_populates="bid")
     attributes: Mapped[List["BidAttribute"]] = relationship()

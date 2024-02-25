@@ -1,10 +1,11 @@
-"""add initial tables
+"""remove contract and bid type tables
 
-Revision ID: 1ba4bf4f01fc
+Revision ID: c1a9b53d63ab
 Revises: 
-Create Date: 2023-11-27 22:04:29.624121
+Create Date: 2024-02-25 04:36:17.881250
 
 """
+
 from typing import Sequence, Union
 
 from alembic import op
@@ -12,7 +13,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "1ba4bf4f01fc"
+revision: str = "c1a9b53d63ab"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -52,22 +53,6 @@ def upgrade() -> None:
         schema="lookup",
     )
     op.create_table(
-        "bid_type",
-        sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("name", sa.String(length=20), nullable=False),
-        sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("name"),
-        schema="lookup",
-    )
-    op.create_table(
-        "contract",
-        sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("name", sa.String(length=20), nullable=False),
-        sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("name"),
-        schema="lookup",
-    )
-    op.create_table(
         "role",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("name", sa.String(length=20), nullable=False),
@@ -98,12 +83,10 @@ def upgrade() -> None:
         sa.Column("bid_manager_id", sa.Integer(), nullable=False),
         sa.Column("approved", sa.Boolean(), nullable=False),
         sa.Column("lead", sa.String(length=100), nullable=False),
-        sa.Column("bid_type_id", sa.Integer(), nullable=False),
         sa.Column("customer_id", sa.Integer(), nullable=False),
         sa.Column("margin", sa.Integer(), nullable=False),
         sa.Column("due_date", sa.DateTime(), nullable=False),
         sa.Column("final_amt", sa.Numeric(precision=15, scale=2), nullable=False),
-        sa.Column("contract_id", sa.Integer(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(),
@@ -114,14 +97,6 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(
             ["bid_manager_id"],
             ["user.id"],
-        ),
-        sa.ForeignKeyConstraint(
-            ["bid_type_id"],
-            ["lookup.bid_type.id"],
-        ),
-        sa.ForeignKeyConstraint(
-            ["contract_id"],
-            ["lookup.contract.id"],
         ),
         sa.ForeignKeyConstraint(
             ["customer_id"],
@@ -281,8 +256,6 @@ def downgrade() -> None:
     op.drop_index(op.f("ix_user_username"), table_name="user")
     op.drop_table("user")
     op.drop_table("role", schema="lookup")
-    op.drop_table("contract", schema="lookup")
-    op.drop_table("bid_type", schema="lookup")
     op.drop_table("bid_attribute_type", schema="lookup")
     op.drop_index(op.f("ix_customer_name"), table_name="customer")
     op.drop_table("customer")

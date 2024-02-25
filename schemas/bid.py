@@ -7,8 +7,6 @@ from schemas.bid_attribute import (
 )
 from schemas.user import User
 from schemas.customer import Customer
-from schemas.bid_type import BidType
-from schemas.contract import Contract
 from schemas.bid_estimate import BidEstimateCreate, BidEstimate, BidEstimateUpdate
 
 
@@ -46,8 +44,6 @@ class BidFull(BidBase):
     initial_bid_amt: currency
     bid_manager: User
     customer: Customer
-    bid_type: BidType
-    contract_type: Contract
     estimated_data: BidEstimate
     attributes: list[BidAttribute]
     created_at: dt
@@ -63,8 +59,6 @@ class Bid(BidBase):
     final_amt: currency
     initial_bid_amt: currency
     bid_manager: User
-    bid_type: BidType
-    contract_type: Contract
     created_at: dt
     updated_at: dt | None
 
