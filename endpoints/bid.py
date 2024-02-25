@@ -1,7 +1,5 @@
 from sqlalchemy.orm import Session
 from crud import (
-    contract,
-    bid_type,
     bid_attribute_type,
     bid,
     user,
@@ -12,8 +10,6 @@ from crud import (
 )
 from fastapi import APIRouter, Depends, HTTPException
 from core import deps
-from schemas.contract import Contract, ContractCreate
-from schemas.bid_type import BidType, BidTypeCreate
 from schemas.bid_attribute_type import (
     BidAttributeTypeCreate,
     BidAttributeTypeUpdate,
@@ -26,40 +22,6 @@ from schemas.bid_attribute_option import BidAttributeOptionCreateDB
 
 
 router = APIRouter(prefix="/bids", tags=["bids"])
-
-
-@router.post("/contracts", response_model=SuccessResponse[Contract])
-def create_bid_contract_type(
-    contract_in: ContractCreate, db: Session = Depends(deps.get_db)
-):
-    try:
-        with db.begin_nested():
-            new_contract_type = contract.create(db, contract_in)
-            db.commit()
-    except Exception as e:
-        print(e)
-        db.rollback()
-        raise HTTPException(500, "Internal Server Error")
-    db.refresh(new_contract_type)
-    return SuccessResponse(data=new_contract_type)
-
-
-@router.get("/contracts", response_model=SuccessResponse[list[Contract]])
-def get_contract_types(db: Session = Depends(deps.get_db)):
-    return SuccessResponse(data=contract.get(db))
-
-
-@router.post("/types", response_model=SuccessResponse[BidType])
-def create_bid_type(bid_type_in: BidTypeCreate, db: Session = Depends(deps.get_db)):
-    new_bid_type = bid_type.create(db, bid_type_in)
-    db.commit()
-    db.refresh(new_bid_type)
-    return SuccessResponse(data=new_bid_type)
-
-
-@router.get("/types", response_model=SuccessResponse[list[BidType]])
-def get_bid_types(db: Session = Depends(deps.get_db)):
-    return SuccessResponse(data=bid_type.get(db))
 
 
 @router.post("/attribute-types", response_model=SuccessResponse[BidAttributeTypeFull])

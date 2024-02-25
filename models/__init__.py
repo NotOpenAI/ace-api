@@ -6,8 +6,6 @@ from .project import Project
 from .bid_estimate import BidEstimate
 from .bid_attribute import BidAttribute
 from .customer_contact import CustomerContact
-from .lookup.bid_type import BidType
 from .lookup.role import Role
-from .lookup.contract import Contract
 from .lookup.bid_attribute_type import BidAttributeType
 from .lookup.bid_attribute_option import BidAttributeOption
