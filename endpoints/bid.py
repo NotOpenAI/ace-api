@@ -7,6 +7,8 @@ from crud import (
     user,
     bid_attribute,
     bid_attribute_option,
+    role,
+    customer as customercrud,
 )
 from fastapi import APIRouter, Depends, HTTPException
 from core import deps
@@ -204,5 +206,26 @@ async def get_bid(bid_id: int, db: Session = Depends(deps.get_db)):
 
 
 @router.get("", response_model=SuccessResponse[list[Bid]])
-async def get_bids(db: Session = Depends(deps.get_db)):
-    return SuccessResponse(data=bid.get(db))
+async def get_bids(
+    bid_manager: str | None = None,
+    approved: bool | None = None,
+    customer: str | None = None,
+    db: Session = Depends(deps.get_db),
+):
+    bid_manager_id = None
+    customer_id = None
+    if bid_manager:
+        bid_manager_role = role.get_role_by_name(db, "Bid Manager")
+        valid_bid_manager = user.get_by_username(db, bid_manager, bid_manager_role.id)
+        if not valid_bid_manager:
+            raise HTTPException(
+                400, "Bid manager does not exist or does not have the bid manager role"
+            )
+        bid_manager_id = valid_bid_manager.id
+
+    if customer:
+        valid_customer = customercrud.get_by_name(db, customer)
+        if not valid_customer:
+            raise HTTPException(400, "Customer does not exist")
+        customer_id = valid_customer.id
+    return SuccessResponse(data=bid.get(db, approved, bid_manager_id, customer_id))

@@ -47,5 +47,18 @@ def update_estimates(
     return bid_estimates
 
 
-def get(db: Session):
-    return db.scalars(select(Bid)).all()
+def get(
+    db: Session,
+    approved: bool | None = None,
+    bid_manager_id: int | None = None,
+    customer_id: int | None = None,
+):
+    query = select(Bid)
+    if approved is not None:
+        query = query.where(Bid.approved == approved)
+    if bid_manager_id:
+        query = query.where(Bid.bid_manager_id == bid_manager_id)
+    if customer_id:
+        query = query.where(Bid.customer_id == customer_id)
+
+    return db.scalars(query).all()
