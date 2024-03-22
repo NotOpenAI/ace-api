@@ -25,8 +25,11 @@ def get_by_id(db: Session, user_id: int):
     return db.scalars(select(User).where(User.id == user_id)).first()
 
 
-def get_by_username(db: Session, username: str):
-    return db.scalars(select(User).where(User.username == username)).first()
+def get_by_username(db: Session, username: str, role_id: int | None = None):
+    query = select(User).where(User.username.ilike(username))
+    if role_id:
+        query = query.where(User.role_associations.any(UserRole.role_id == role_id))
+    return db.scalars(query).first()
 
 
 def get_all(db: Session):

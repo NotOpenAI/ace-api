@@ -28,7 +28,7 @@ def update(db: Session, customer: Customer, update_in: CustomerUpdate):
 
 
 def get_by_name(db: Session, name: str):
-    return db.scalars(select(Customer).where(Customer.name == name)).first()
+    return db.scalars(select(Customer).where(Customer.name.ilike(name))).first()
 
 
 def get_all(db: Session):
