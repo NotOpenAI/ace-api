@@ -36,26 +36,36 @@ async def create_user(user_in: UserCreate, db: Session = Depends(deps.get_db)):
     return SuccessResponse(data=new_user)
 
 
-@router.get("/{username}", response_model=SuccessResponse[UserFull])
-async def get_user(username: str, db: Session = Depends(deps.get_db)):
-    db_user = user.get_by_username(db, username)
+@router.get("/{id}", response_model=SuccessResponse[UserFull])
+async def get_user(id: int, db: Session = Depends(deps.get_db)):
+    db_user = user.get_by_id(db, id)
     if db_user:
         return SuccessResponse(data=db_user)
     raise HTTPException(404, "User not found")
 
 
 @router.get("", response_model=SuccessResponse[list[User]])
-async def get_users(db: Session = Depends(deps.get_db)):
-    return SuccessResponse(data=user.get_all(db))
+async def get_users(
+    role_name: str | None = None,
+    username: str | None = None,
+    db: Session = Depends(deps.get_db),
+):
+    role_id = None
+    if role_name:
+        valid_role = role.get_role_by_name(db, role_name)
+        if not valid_role:
+            raise HTTPException(400, "Invalid role filter")
+        role_id = valid_role.id
+    return SuccessResponse(data=user.get_all(db, username, role_id))
 
 
-@router.put("/{user_id}", response_model=SuccessResponse[UserFull])
+@router.put("/{id}", response_model=SuccessResponse[UserFull])
 async def update_user(
-    user_id: int,
+    id: int,
     user_in: UserUpdate,
     db: Session = Depends(deps.get_db),
 ):
-    db_user = user.get_by_id(db, user_id)
+    db_user = user.get_by_id(db, id)
     if not db_user:
         raise HTTPException(404, "User not found")
 
@@ -70,12 +80,12 @@ async def update_user(
     return SuccessResponse(data=updated_user)
 
 
-@router.put("/{user_id}/roles", response_model=SuccessResponse[UserFull])
+@router.put("/{id}/roles", response_model=SuccessResponse[UserFull])
 async def manage_user_roles(
-    user_id: int, user_roles: UserRoleBulkUpdate, db: Session = Depends(deps.get_db)
+    id: int, user_roles: UserRoleBulkUpdate, db: Session = Depends(deps.get_db)
 ):
     # Check that user exists
-    db_user = user.get_by_id(db, user_id)
+    db_user = user.get_by_id(db, id)
     if not db_user:
         raise HTTPException(400, "User not found")
 
@@ -87,11 +97,11 @@ async def manage_user_roles(
 
     try:
         with db.begin_nested():
-            user_role.bulk_remove(db, user_id)
+            user_role.bulk_remove(db, id)
             user_role.bulk_create(
                 db,
                 [
-                    UserRoleCreate(user_id=user_id, role_id=role_id)
+                    UserRoleCreate(user_id=id, role_id=role_id)
                     for role_id in unique_role_ids
                 ],
             )

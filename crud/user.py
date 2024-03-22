@@ -32,8 +32,13 @@ def get_by_username(db: Session, username: str, role_id: int | None = None):
     return db.scalars(query).first()
 
 
-def get_all(db: Session):
-    return db.scalars(select(User)).all()
+def get_all(db: Session, username: str | None = None, role_id: int | None = None):
+    stmt = select(User)
+    if username:
+        stmt = stmt.where(User.username.icontains(username))
+    if role_id:
+        stmt = stmt.where(User.role_associations.any(UserRole.role_id == role_id))
+    return db.scalars(stmt).all()
 
 
 def update(db: Session, user: User, update_in: UserUpdate):

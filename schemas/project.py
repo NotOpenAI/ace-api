@@ -1,14 +1,7 @@
 from db.types import dt, currency
 from schemas.base import GlobalBase
-from schemas.bid_attribute import (
-    BidAttributeCreate,
-    BidAttribute,
-    BidAttributeBulkUpdate,
-)
 from schemas.user import User
 from schemas.customer import Customer
-from schemas.bid_type import BidType
-from schemas.contract import Contract
 from schemas.bid_estimate import BidEstimateCreate, BidEstimate, BidEstimateUpdate
 from schemas.bid import Bid
 

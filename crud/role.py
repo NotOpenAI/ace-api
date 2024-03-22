@@ -11,7 +11,7 @@ def create(db: Session, role: RoleCreate):
 
 
 def get_role_by_name(db: Session, name: str):
-    return db.scalars(select(Role).where(Role.name == name)).first()
+    return db.scalars(select(Role).where(Role.name.ilike(name))).first()
 
 
 def get_roles_by_ids(db: Session, role_ids: set[int]):
