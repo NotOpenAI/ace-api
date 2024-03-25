@@ -9,7 +9,7 @@ from crud import (
     customer as customercrud,
 )
 from fastapi import APIRouter, Depends, HTTPException
-from core import deps
+from core import deps, security
 from schemas.bid_attribute_type import (
     BidAttributeTypeCreate,
     BidAttributeTypeUpdate,
@@ -19,6 +19,8 @@ from schemas.base import SuccessResponse
 from schemas.bid import BidFull, BidCreate, BidUpdate, Bid
 from schemas.bid_attribute import BidAttributeCreateDB
 from schemas.bid_attribute_option import BidAttributeOptionCreateDB
+from typing import Annotated, Optional, List
+from models.user import User
 
 
 router = APIRouter(prefix="/bids", tags=["bids"])
@@ -26,8 +28,12 @@ router = APIRouter(prefix="/bids", tags=["bids"])
 
 @router.post("/attribute-types", response_model=SuccessResponse[BidAttributeTypeFull])
 async def create_bid_attribute_type(
-    attribute_type_in: BidAttributeTypeCreate, db: Session = Depends(deps.get_db)
+    attribute_type_in: BidAttributeTypeCreate,
+    current_user: Annotated[User, Depends(security.get_current_user)],
+    db: Session = Depends(deps.get_db),
 ):
+    if not current_user.has_role("Admin"):
+        raise HTTPException(401, "Only admins can create bid attribute types")
     new_bid_attribute_type = bid_attribute_type.create(db, attribute_type_in)
     db.commit()
     db.refresh(new_bid_attribute_type)
@@ -41,8 +47,11 @@ async def create_bid_attribute_type(
 async def update_bid_attribute_type(
     attribute_type_id: int,
     attribute_type_in: BidAttributeTypeUpdate,
+    current_user: Annotated[User, Depends(security.get_current_user)],
     db: Session = Depends(deps.get_db),
 ):
+    if not current_user.has_role("Admin"):
+        raise HTTPException(401, "Only admins can create bid attribute types")
     db_attribute_type = bid_attribute_type.get_by_id(db, attribute_type_id)
     if not db_attribute_type:
         raise HTTPException(404, "Bid attribute type not found")
@@ -79,21 +88,30 @@ async def update_bid_attribute_type(
 @router.get(
     "/attribute-types", response_model=SuccessResponse[list[BidAttributeTypeFull]]
 )
-async def get_bid_attribute_types(db: Session = Depends(deps.get_db)):
+async def get_bid_attribute_types(
+    current_user: Annotated[User, Depends(security.get_current_user)],
+    db: Session = Depends(deps.get_db),
+):
     bid_attribute_types = bid_attribute_type.get(db)
     return SuccessResponse(data=bid_attribute_types)
 
 
 @router.post("", response_model=SuccessResponse[BidFull])
-async def create_bid(bid_in: BidCreate, db: Session = Depends(deps.get_db)):
-    # Validate bid manager
-    bid_manager = user.get_by_id(db, bid_in.bid_manager_id)
-    if not bid_manager:
-        raise HTTPException(400, "Invalid bid manager id")
-    bm_role = [role for role in bid_manager.roles if role.name == "Bid Manager"]
-    if not len(bm_role):
-        raise HTTPException(400, "Bid manager needs to have 'Bid Manager' role")
-
+async def create_bid(
+    bid_in: BidCreate,
+    current_user: Annotated[User, Depends(security.get_current_user)],
+    db: Session = Depends(deps.get_db),
+):
+    if not current_user.has_role("Bid Manager"):
+        raise HTTPException(401, "Only bid managers can create bids")
+    # Validate bid manager(s)
+    if len(bid_in.bid_manager_ids):
+        bm_role = role.get_role_by_name(db, "Bid Manager")
+        valid_bid_managers = user.get_all(
+            db, bid_in.bid_manager_ids, role_id=bm_role.id
+        )
+        if len(valid_bid_managers) != len(bid_in.bid_manager_ids):
+            raise HTTPException(400, "Invalid bid manager id(s)")
     try:
         with db.begin_nested():
             new_bid = bid.create(db, bid_in)
@@ -108,28 +126,36 @@ async def create_bid(bid_in: BidCreate, db: Session = Depends(deps.get_db)):
 
 @router.put("/{bid_id}", response_model=SuccessResponse[BidFull])
 async def update_bid(
-    bid_id: int, bid_in: BidUpdate, db: Session = Depends(deps.get_db)
+    bid_id: int,
+    bid_in: BidUpdate,
+    current_user: Annotated[User, Depends(security.get_current_user)],
+    db: Session = Depends(deps.get_db),
 ):
+    """Update a bid's attributes"""
+    if not current_user.has_role("Bid Manager"):
+        raise HTTPException(401, "Only bid managers can update bids")
     bid_obj = bid.get_by_id(bid_id, db)
     if not bid_obj:
         raise HTTPException(404, "Bid not found")
-
+    if not any(bm.id == current_user.id for bm in bid_obj.bid_managers):
+        raise HTTPException(401, "You do not have permission to manage this bid")
     try:
         with db.begin_nested():
-            updated_bid = bid.update(db, bid_obj, bid_in)
-
-            if (
-                bid_in.approved is not None
-                and bid_in.approved == False
-                and bid_obj.project
-            ):
-                raise HTTPException(
-                    400, "Cannot reject a bid after a project has been created"
+            if bid_in.bid_manager_ids and len(bid_in.bid_manager_ids):
+                bm_role = role.get_role_by_name(db, "Bid Manager")
+                valid_bid_managers = user.get_all(
+                    db, bid_in.bid_manager_ids, role_id=bm_role.id
                 )
-
-            if bid_in.estimated_data:
-                bid.update_estimates(db, bid_obj.estimated_data, bid_in.estimated_data)
-
+                if len(valid_bid_managers) != len(bid_in.bid_manager_ids):
+                    raise HTTPException(400, "Invalid bid manager id(s)")
+            if bid_in.project_manager_ids and len(bid_in.project_manager_ids):
+                pm_role = role.get_role_by_name(db, "Project Manager")
+                valid_project_managers = user.get_all(
+                    db, bid_in.project_manager_ids, role_id=pm_role.id
+                )
+                if len(valid_project_managers) != len(bid_in.project_manager_ids):
+                    raise HTTPException(400, "Invalid project manager id(s)")
+            updated_bid = bid.update(db, bid_obj, bid_in)
             if bid_in.attributes:
                 if bid_in.attributes.deleted_attributes:
                     bid_attribute.bulk_remove(db, bid_in.attributes.deleted_attributes)
@@ -160,7 +186,13 @@ async def update_bid(
 
 
 @router.get("/{bid_id}", response_model=SuccessResponse[BidFull])
-async def get_bid(bid_id: int, db: Session = Depends(deps.get_db)):
+async def get_bid(
+    bid_id: int,
+    current_user: Annotated[User, Depends(security.get_current_user)],
+    db: Session = Depends(deps.get_db),
+):
+    if not current_user.has_role("Bid Manager"):
+        raise HTTPException(401, "Missing Bid Manager role")
     bid_obj = bid.get_by_id(bid_id, db)
     if not bid_obj:
         raise HTTPException(404, "Bid not found")
@@ -169,25 +201,23 @@ async def get_bid(bid_id: int, db: Session = Depends(deps.get_db)):
 
 @router.get("", response_model=SuccessResponse[list[Bid]])
 async def get_bids(
-    bid_manager: str | None = None,
-    approved: bool | None = None,
-    customer: str | None = None,
+    current_user: Annotated[User, Depends(security.get_current_user)],
+    bid_manager_ids: Optional[List[int]] = None,
+    customer: Optional[str] = None,
     db: Session = Depends(deps.get_db),
 ):
-    bid_manager_id = None
     customer_id = None
-    if bid_manager:
-        bid_manager_role = role.get_role_by_name(db, "Bid Manager")
-        valid_bid_manager = user.get_by_username(db, bid_manager, bid_manager_role.id)
-        if not valid_bid_manager:
-            raise HTTPException(
-                400, "Bid manager does not exist or does not have the bid manager role"
-            )
-        bid_manager_id = valid_bid_manager.id
+    if not current_user.has_role("Bid Manager"):
+        raise HTTPException(401, "Missing Bid Manager role")
 
+    if bid_manager_ids and len(bid_manager_ids):
+        bm_role = role.get_role_by_name(db, "Bid Manager")
+        valid_bms = user.get_all(db, user_ids=bid_manager_ids, role_id=bm_role.id)
+        if valid_bms != len(bid_manager_ids):
+            raise HTTPException(400, "Invalid bid manager id(s)")
     if customer:
         valid_customer = customercrud.get_by_name(db, customer)
         if not valid_customer:
             raise HTTPException(400, "Customer does not exist")
         customer_id = valid_customer.id
-    return SuccessResponse(data=bid.get(db, approved, bid_manager_id, customer_id))
+    return SuccessResponse(data=bid.get(db, customer_id, bid_manager_ids))

@@ -17,11 +17,9 @@ class BidAttribute(Base):
             "(num_val IS NULL AND option_id IS NOT NULL) OR (num_val IS NOT NULL AND option_id IS NULL)",
             name="only_one_required",
         ),
-        UniqueConstraint("bid_id", "type_id"),
     )
-    id: Mapped[intpk] = mapped_column()
-    bid_id: Mapped[int] = mapped_column(ForeignKey("bid.id"))
-    type_id: Mapped[int] = mapped_column(ForeignKey("lookup.bid_attribute_type.id"))
+    bid_id: Mapped[intpk] = mapped_column(ForeignKey("bid.id"))
+    type_id: Mapped[intpk] = mapped_column(ForeignKey("lookup.bid_attribute_type.id"))
     type: Mapped["BidAttributeType"] = relationship()
     num_val: Mapped[Optional[int]] = mapped_column()
     option_id: Mapped[Optional[int]] = mapped_column(

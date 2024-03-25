@@ -1,11 +1,10 @@
-"""remove contract and bid type tables
+"""initial tables
 
-Revision ID: c1a9b53d63ab
+Revision ID: fd917d4ee91a
 Revises: 
-Create Date: 2024-02-25 04:36:17.881250
+Create Date: 2024-03-22 23:57:15.629981
 
 """
-
 from typing import Sequence, Union
 
 from alembic import op
@@ -13,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "c1a9b53d63ab"
+revision: str = "fd917d4ee91a"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -26,12 +25,10 @@ def upgrade() -> None:
         "customer",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("name", sa.String(length=100), nullable=False),
-        sa.Column("phone", sa.String(length=20), nullable=False),
-        sa.Column("address", sa.String(length=255), nullable=False),
-        sa.Column("owner", sa.String(length=100), nullable=False),
-        sa.Column("market", sa.String(length=50), nullable=False),
-        sa.Column("reputation", sa.Integer(), nullable=False),
-        sa.Column("fin_health", sa.Integer(), nullable=False),
+        sa.Column("owner", sa.String(length=100), nullable=True),
+        sa.Column("market", sa.String(length=50), nullable=True),
+        sa.Column("reputation", sa.Integer(), nullable=True),
+        sa.Column("fin_health", sa.Integer(), nullable=True),
         sa.Column(
             "created_at",
             sa.DateTime(),
@@ -80,13 +77,16 @@ def upgrade() -> None:
     op.create_table(
         "bid",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("bid_manager_id", sa.Integer(), nullable=False),
-        sa.Column("approved", sa.Boolean(), nullable=False),
-        sa.Column("lead", sa.String(length=100), nullable=False),
+        sa.Column("name", sa.String(length=50), nullable=False),
+        sa.Column("lead", sa.String(length=100), nullable=True),
+        sa.Column("foreman", sa.String(length=100), nullable=True),
         sa.Column("customer_id", sa.Integer(), nullable=False),
-        sa.Column("margin", sa.Integer(), nullable=False),
-        sa.Column("due_date", sa.DateTime(), nullable=False),
-        sa.Column("final_amt", sa.Numeric(precision=15, scale=2), nullable=False),
+        sa.Column("start_date", sa.DateTime(), nullable=True),
+        sa.Column("finish_date", sa.DateTime(), nullable=True),
+        sa.Column(
+            "original_contract", sa.Numeric(precision=15, scale=2), nullable=True
+        ),
+        sa.Column("original_cost", sa.Numeric(precision=15, scale=2), nullable=True),
         sa.Column(
             "created_at",
             sa.DateTime(),
@@ -94,10 +94,6 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
-        sa.ForeignKeyConstraint(
-            ["bid_manager_id"],
-            ["user.id"],
-        ),
         sa.ForeignKeyConstraint(
             ["customer_id"],
             ["customer.id"],
@@ -181,73 +177,40 @@ def upgrade() -> None:
         sa.UniqueConstraint("bid_id", "type_id"),
     )
     op.create_table(
-        "bid_estimate",
-        sa.Column("id", sa.Integer(), nullable=False),
+        "bid_manager",
+        sa.Column("manager_id", sa.Integer(), nullable=False),
         sa.Column("bid_id", sa.Integer(), nullable=False),
-        sa.Column("start_date", sa.DateTime(), nullable=False),
-        sa.Column("duration", sa.Integer(), nullable=False),
-        sa.Column("mat_cost", sa.Numeric(precision=15, scale=2), nullable=False),
-        sa.Column("labor_cost", sa.Numeric(precision=15, scale=2), nullable=False),
-        sa.Column("quickbid_amt", sa.Numeric(precision=15, scale=2), nullable=True),
-        sa.Column(
-            "created_at",
-            sa.DateTime(),
-            server_default=sa.text("CURRENT_TIMESTAMP"),
-            nullable=False,
-        ),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
-        sa.ForeignKeyConstraint(
-            ["bid_id"],
-            ["bid.id"],
-        ),
-        sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("bid_id"),
-    )
-    op.create_table(
-        "project",
-        sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("name", sa.String(length=50), nullable=False),
-        sa.Column("percent_completed", sa.Integer(), nullable=False),
-        sa.Column("project_manager_id", sa.Integer(), nullable=False),
-        sa.Column("foreman", sa.String(length=50), nullable=False),
-        sa.Column("customer_id", sa.Integer(), nullable=False),
-        sa.Column("mat_expense", sa.Numeric(precision=15, scale=2), nullable=False),
-        sa.Column("labor_expense", sa.Numeric(precision=15, scale=2), nullable=False),
-        sa.Column("num_change_mgt", sa.Integer(), nullable=False),
-        sa.Column(
-            "change_mgt_revenue", sa.Numeric(precision=15, scale=2), nullable=False
-        ),
-        sa.Column("finish_date", sa.DateTime(), nullable=True),
-        sa.Column("bid_id", sa.Integer(), nullable=False),
-        sa.Column(
-            "created_at",
-            sa.DateTime(),
-            server_default=sa.text("CURRENT_TIMESTAMP"),
-            nullable=False,
-        ),
-        sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.ForeignKeyConstraint(
             ["bid_id"],
             ["bid.id"],
         ),
         sa.ForeignKeyConstraint(
-            ["customer_id"],
-            ["customer.id"],
-        ),
-        sa.ForeignKeyConstraint(
-            ["project_manager_id"],
+            ["manager_id"],
             ["user.id"],
         ),
-        sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("bid_id"),
+        sa.PrimaryKeyConstraint("manager_id", "bid_id"),
+    )
+    op.create_table(
+        "project_manager",
+        sa.Column("manager_id", sa.Integer(), nullable=False),
+        sa.Column("project_id", sa.Integer(), nullable=False),
+        sa.ForeignKeyConstraint(
+            ["manager_id"],
+            ["user.id"],
+        ),
+        sa.ForeignKeyConstraint(
+            ["project_id"],
+            ["bid.id"],
+        ),
+        sa.PrimaryKeyConstraint("manager_id", "project_id"),
     )
     # ### end Alembic commands ###
 
 
 def downgrade() -> None:
     # ### commands auto generated by Alembic - please adjust! ###
-    op.drop_table("project")
-    op.drop_table("bid_estimate")
+    op.drop_table("project_manager")
+    op.drop_table("bid_manager")
     op.drop_table("bid_attribute")
     op.drop_table("user_role")
     op.drop_table("bid_attribute_option", schema="lookup")

@@ -7,47 +7,52 @@ from schemas.bid_attribute import (
 )
 from schemas.user import User
 from schemas.customer import Customer
-from schemas.bid_estimate import BidEstimateCreate, BidEstimate, BidEstimateUpdate
+from typing import Optional, List
 
 
 class BidBase(GlobalBase):
-    lead: str
-    margin: int
-    due_date: dt
+    name: str
 
 
 class BidCreate(BidBase):
-    final_amt: currency = currency(0)
-    bid_manager_id: int
-    bid_type_id: int
+    bid_manager_ids: List[int]
     customer_id: int
-    contract_id: int
-    attributes: list[BidAttributeCreate] = []
-    estimated_data: BidEstimateCreate
+    original_contract: Optional[currency] = currency(0)
+    original_cost: Optional[currency] = currency(0)
+    lead: Optional[str]
+    attributes: List[BidAttributeCreate] = []
 
 
 class BidUpdate(GlobalBase):
-    approved: bool | None = None
-    lead: str | None = None
-    margin: int | None = None
-    due_date: dt | None = None
-    final_amt: currency | None = None
-    contract_id: int | None = None
-    attributes: BidAttributeBulkUpdate | None = None
-    estimated_data: BidEstimateUpdate | None = None
+    name: Optional[str] = None
+    lead: Optional[str] = None
+    bid_manager_ids: Optional[List[int]] = None
+    project_manager_ids: Optional[List[int]] = None
+    foreman: Optional[str] = None
+    start_date: Optional[dt] = None
+    original_contract: Optional[currency] = None
+    original_cost: Optional[currency] = None
+    attributes: Optional[BidAttributeBulkUpdate] = None
+
+
+class ProjectUpdate(GlobalBase):
+    project_manager_ids: Optional[List[int]] = None
+    foreman: Optional[str] = None
+    finish_date: Optional[dt] = None
 
 
 class BidFull(BidBase):
     id: int
-    approved: bool
-    final_amt: currency
-    initial_bid_amt: currency
-    bid_manager: User
+    bid_managers: List[User]
+    project_managers: List[User]
+    lead: Optional[str]
+    foreman: Optional[str]
     customer: Customer
-    estimated_data: BidEstimate
+    start_date: Optional[dt]
+    finish_date: Optional[dt]
     attributes: list[BidAttribute]
     created_at: dt
-    updated_at: dt | None
+    updated_at: Optional[dt]
 
     class Config:
         from_attributes = True
@@ -55,12 +60,13 @@ class BidFull(BidBase):
 
 class Bid(BidBase):
     id: int
-    approved: bool
-    final_amt: currency
-    initial_bid_amt: currency
-    bid_manager: User
+    lead: Optional[str]
+    foreman: Optional[str]
+    customer: Customer
+    start_date: Optional[dt]
+    finish_date: Optional[dt]
     created_at: dt
-    updated_at: dt | None
+    updated_at: Optional[dt]
 
     class Config:
         from_attributes = True

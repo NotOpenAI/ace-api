@@ -4,8 +4,8 @@ from models.lookup.role import Role
 from models.user_role import UserRole
 from models.bid import Bid
 from models.customer import Customer
-from models.project import Project
-from models.bid_estimate import BidEstimate
+from models.project_manager import ProjectManager
+from models.bid_manager import BidManager
 from models.bid_attribute import BidAttribute
 from models.customer_contact import CustomerContact
 from models.lookup.bid_attribute_option import BidAttributeOption
