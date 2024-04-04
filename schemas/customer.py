@@ -5,42 +5,45 @@ from schemas.customer_contact import (
     CustomerContactCreate,
     CustomerContact,
 )
+from typing import Optional
 
 
 class CustomerBase(GlobalBase):
     name: str
-    phone: PhoneNumber
-    address: str
-    owner: str
-    market: str
-    reputation: int
-    fin_health: int
+    owner: Optional[str]
+    market: Optional[str]
+    reputation: Optional[int]
+    fin_health: Optional[int]
 
 
-class CustomerCreate(CustomerBase):
+class CustomerCreate(GlobalBase):
+    name: str
+    owner: Optional[str] = None
+    market: Optional[str] = None
+    reputation: Optional[int] = None
+    fin_health: Optional[int] = None
     contacts: list[CustomerContactCreate] = []
 
 
 class CustomerUpdate(GlobalBase):
-    name: str | None = None
-    phone: PhoneNumber | None = None
-    address: str | None = None
-    owner: str | None = None
-    market: str | None = None
-    reputation: int | None = None
-    fin_health: int | None = None
-    contacts: list[CustomerContactCreate] | None = None
+    name: Optional[str] = None
+    phone: Optional[PhoneNumber] = None
+    owner: Optional[str] = None
+    market: Optional[str] = None
+    reputation: Optional[int] = None
+    fin_health: Optional[int] = None
+    contacts: Optional[list[CustomerContactCreate]] = None
 
 
 class CustomerGet(GlobalBase):
-    id: int | None = None
+    id: Optional[int] = None
 
 
 class CustomerFull(CustomerBase):
     id: int
     contacts: list[CustomerContact] = []
     created_at: dt
-    updated_at: dt | None
+    updated_at: Optional[dt]
 
     class Config:
         from_attributes = True
@@ -49,7 +52,7 @@ class CustomerFull(CustomerBase):
 class Customer(CustomerBase):
     id: int
     created_at: dt
-    updated_at: dt | None
+    updated_at: Optional[dt]
 
     class Config:
         from_attributes = True

@@ -2,14 +2,15 @@ from schemas.base import GlobalBase
 from db.types import dt
 from schemas.bid_attribute_type import BidAttributeType
 from schemas.bid_attribute_option import BidAttributeOption
+from typing import Optional, List, Set
 
 
 class BidAttributeBase(GlobalBase):
-    num_val: int | None = None
+    num_val: Optional[int] = None
 
 
 class BidAttributeCreate(BidAttributeBase):
-    option_id: int | None = None
+    option_id: Optional[int] = None
     type_id: int
 
 
@@ -19,20 +20,19 @@ class BidAttributeCreateDB(BidAttributeCreate):
 
 class BidAttributeUpdate(BidAttributeBase):
     type_id: int
-    option_id: int | None = None
+    option_id: Optional[int] = None
 
 
 class BidAttributeBulkUpdate(GlobalBase):
-    updated_attributes: list[BidAttributeUpdate] | None = None
-    deleted_attributes: set[int] | None = None
+    updated_attributes: Optional[List[BidAttributeUpdate]] = None
+    deleted_attributes: Optional[Set[int]] = None
 
 
 class BidAttribute(BidAttributeBase):
-    id: int
     type: BidAttributeType
-    option: BidAttributeOption | None
+    option: Optional[BidAttributeOption]
     created_at: dt
-    updated_at: dt | None
+    updated_at: Optional[dt]
 
     class Config:
         from_attributes = True

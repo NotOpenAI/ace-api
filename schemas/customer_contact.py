@@ -1,12 +1,13 @@
 from pydantic import EmailStr
 from pydantic_extra_types.phone_numbers import PhoneNumber
 from schemas.base import GlobalBase
+from typing import Optional
 
 
 class CustomerContactBase(GlobalBase):
     name: str
-    email: EmailStr | None = None
-    phone: PhoneNumber | None = None
+    email: Optional[EmailStr] = None
+    phone: Optional[PhoneNumber] = None
 
 
 class CustomerContactCreate(CustomerContactBase):

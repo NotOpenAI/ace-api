@@ -5,6 +5,7 @@ from models.user_role import UserRole
 from core.security import get_password_hash
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import select
+from typing import Optional, List
 
 
 def create(db: Session, user: UserCreate):
@@ -25,12 +26,28 @@ def get_by_id(db: Session, user_id: int):
     return db.scalars(select(User).where(User.id == user_id)).first()
 
 
-def get_by_username(db: Session, username: str):
-    return db.scalars(select(User).where(User.username == username)).first()
+def get_by_username(db: Session, username: str, role_id: Optional[int] = None):
+    query = select(User).where(User.username.ilike(username))
+    if role_id:
+        query = query.where(User.role_associations.any(UserRole.role_id == role_id))
+    return db.scalars(query).first()
 
 
-def get_all(db: Session):
-    return db.scalars(select(User)).all()
+def get_all(
+    db: Session,
+    user_ids: Optional[List[int]] = None,
+    username: Optional[str] = None,
+    role_id: Optional[int] = None,
+):
+    stmt = select(User)
+
+    if user_ids:
+        stmt = stmt.where(User.id.in_(user_ids))
+    if username:
+        stmt = stmt.where(User.username.icontains(username))
+    if role_id:
+        stmt = stmt.where(User.role_associations.any(UserRole.role_id == role_id))
+    return db.scalars(stmt).all()
 
 
 def update(db: Session, user: User, update_in: UserUpdate):

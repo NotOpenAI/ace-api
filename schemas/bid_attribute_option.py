@@ -1,4 +1,5 @@
 from schemas.base import GlobalBase
+from typing import Optional
 
 
 class BidAttributeOptionBase(GlobalBase):
@@ -14,13 +15,13 @@ class BidAttributeOptionCreateDB(BidAttributeOptionCreate):
 
 
 class BidAttributeOptionUpdate(BidAttributeOptionBase):
-    id: int | None = None
+    id: Optional[int] = None
     active: bool = True
 
 
 class BidAttributeOptionBulkUpdate(GlobalBase):
-    update_options: list[BidAttributeOptionUpdate] | None = None
-    delete_options: set[int] | None = None
+    update_options: Optional[list[BidAttributeOptionUpdate]] = None
+    delete_options: Optional[set[int]] = None
 
 
 class BidAttributeOption(BidAttributeOptionBase):

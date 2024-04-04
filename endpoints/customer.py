@@ -2,17 +2,20 @@ from schemas.customer import Customer, CustomerCreate, CustomerUpdate, CustomerF
 from sqlalchemy.orm import Session
 from crud import customer as customer_crud, customer_contact
 from fastapi import APIRouter, Depends, HTTPException
-from core import deps
+from core import deps, security
 from schemas.customer_contact import CustomerContactCreateDB
 from schemas.base import SuccessResponse
+from typing import Annotated
+from models.user import User
 
 
 router = APIRouter(prefix="/customers", tags=["customers"])
 
 
-@router.post("", response_model=SuccessResponse[Customer])
+@router.post("", response_model=SuccessResponse[CustomerFull])
 def create_customer(
     customer: CustomerCreate,
+    current_user: Annotated[User, Depends(security.get_current_user)],
     db: Session = Depends(deps.get_db),
 ):
     try:
@@ -27,9 +30,12 @@ def create_customer(
     return SuccessResponse(data=new_customer)
 
 
-@router.put("/{customer_id}", response_model=SuccessResponse[Customer])
+@router.put("/{customer_id}", response_model=SuccessResponse[CustomerFull])
 def update_customer(
-    customer_id: int, customer: CustomerUpdate, db: Session = Depends(deps.get_db)
+    customer_id: int,
+    customer: CustomerUpdate,
+    current_user: Annotated[User, Depends(security.get_current_user)],
+    db: Session = Depends(deps.get_db),
 ):
     db_customer = customer_crud.get_by_id(db, customer_id)
     if not db_customer:
@@ -60,10 +66,17 @@ def update_customer(
 
 
 @router.get("/{id}", response_model=SuccessResponse[CustomerFull])
-def get_customer(id: int, db: Session = Depends(deps.get_db)):
+def get_customer(
+    id: int,
+    current_user: Annotated[User, Depends(security.get_current_user)],
+    db: Session = Depends(deps.get_db),
+):
     return SuccessResponse(data=customer_crud.get_by_id(db, id))
 
 
 @router.get("", response_model=SuccessResponse[list[Customer]])
-def get_customers(db: Session = Depends(deps.get_db)):
+def get_customers(
+    current_user: Annotated[User, Depends(security.get_current_user)],
+    db: Session = Depends(deps.get_db),
+):
     return SuccessResponse(data=customer_crud.get_all(db))

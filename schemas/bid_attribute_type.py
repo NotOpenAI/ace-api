@@ -4,6 +4,7 @@ from schemas.bid_attribute_option import (
     BidAttributeOptionFull,
     BidAttributeOptionBulkUpdate,
 )
+from typing import Optional
 
 
 class BidAttributeTypeBase(GlobalBase):
@@ -16,9 +17,9 @@ class BidAttributeTypeCreate(BidAttributeTypeBase):
 
 
 class BidAttributeTypeUpdate(GlobalBase):
-    options: BidAttributeOptionBulkUpdate | None = None
-    active: bool | None = None
-    required: bool | None = None
+    options: Optional[BidAttributeOptionBulkUpdate] = None
+    active: Optional[bool] = None
+    required: Optional[bool] = None
 
 
 class BidAttributeTypeFull(BidAttributeTypeBase):

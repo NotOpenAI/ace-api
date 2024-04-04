@@ -9,12 +9,14 @@ from db.types import (
     update_date,
 )
 from typing import List, TYPE_CHECKING
-
+from sqlalchemy.ext.hybrid import hybrid_method
 
 if TYPE_CHECKING:
     from .user_role import UserRole
     from .lookup.role import Role
     from .bid import Bid
+    from .bid_manager import BidManager
+    from .project_manager import ProjectManager
 
 
 class User(Base):
@@ -29,6 +31,21 @@ class User(Base):
     roles: Mapped[List["Role"]] = relationship(
         secondary="user_role", back_populates="users", viewonly=True
     )
-    bids: Mapped[List["Bid"]] = relationship(back_populates="bid_manager")
+    bids: Mapped[List["Bid"]] = relationship(
+        secondary="bid_manager", back_populates="bid_managers", viewonly=True
+    )
+    bid_associations: Mapped[List["BidManager"]] = relationship(
+        back_populates="manager"
+    )
+    projects: Mapped[List["Bid"]] = relationship(
+        secondary="project_manager", back_populates="project_managers", viewonly=True
+    )
+    project_associations: Mapped[List["ProjectManager"]] = relationship(
+        back_populates="manager"
+    )
     created_at: Mapped[create_date] = mapped_column()
     updated_at: Mapped[update_date] = mapped_column()
+
+    @hybrid_method
+    def has_role(self, role_name: str) -> bool:
+        return any(role.name == role_name for role in self.roles)

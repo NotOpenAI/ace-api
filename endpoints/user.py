@@ -1,17 +1,27 @@
-from schemas.user import User, UserFull, UserCreate, UserUpdate
+from schemas.user import User, UserCreate, UserUpdate, UserFull
 from schemas.user_role import UserRoleBulkUpdate, UserRoleCreate
 from sqlalchemy.orm import Session
 from crud import user, user_role, role
 from fastapi import APIRouter, Depends, HTTPException
-from core import deps
+from core import deps, security
 from schemas.base import SuccessResponse
+from typing import Annotated, Optional
+from fastapi.security import OAuth2PasswordRequestForm
+from schemas.token import Token
+from models.user import User
 
 
 router = APIRouter(prefix="/users", tags=["users"])
 
 
 @router.post("", response_model=SuccessResponse[UserFull])
-async def create_user(user_in: UserCreate, db: Session = Depends(deps.get_db)):
+async def create_user(
+    user_in: UserCreate,
+    current_user: Annotated[User, Depends(security.get_current_user)],
+    db: Session = Depends(deps.get_db),
+):
+    if not current_user.has_role("Admin"):
+        raise HTTPException(401, "Only admins can create new users")
     # Check that username is unique
     user_exists = user.get_by_username(db, user_in.username)
     if user_exists:
@@ -36,26 +46,58 @@ async def create_user(user_in: UserCreate, db: Session = Depends(deps.get_db)):
     return SuccessResponse(data=new_user)
 
 
-@router.get("/{username}", response_model=SuccessResponse[UserFull])
-async def get_user(username: str, db: Session = Depends(deps.get_db)):
-    db_user = user.get_by_username(db, username)
+@router.post("/login")
+async def login(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+    db: Session = Depends(deps.get_db),
+) -> Token:
+    valid_user = security.authenticate_user(form_data.username, form_data.password, db)
+    if not valid_user:
+        raise security.credentials_exception
+    access_token = security.create_access_token(data={"sub": valid_user.username})
+
+    return Token(access_token=access_token, token_type="bearer")
+
+
+@router.get("/{id}", response_model=SuccessResponse[UserFull])
+async def get_user(
+    id: int,
+    current_user: Annotated[User, Depends(security.get_current_user)],
+    db: Session = Depends(deps.get_db),
+):
+    db_user = user.get_by_id(db, id)
     if db_user:
         return SuccessResponse(data=db_user)
     raise HTTPException(404, "User not found")
 
 
-@router.get("", response_model=SuccessResponse[list[User]])
-async def get_users(db: Session = Depends(deps.get_db)):
-    return SuccessResponse(data=user.get_all(db))
-
-
-@router.put("/{user_id}", response_model=SuccessResponse[UserFull])
-async def update_user(
-    user_id: int,
-    user_in: UserUpdate,
+@router.get("", response_model=SuccessResponse[list[UserFull]])
+async def get_users(
+    current_user: Annotated[User, Depends(security.get_current_user)],
+    role_name: Optional[str] = None,
+    username: Optional[str] = None,
     db: Session = Depends(deps.get_db),
 ):
-    db_user = user.get_by_id(db, user_id)
+    role_id = None
+    if role_name:
+        valid_role = role.get_role_by_name(db, role_name)
+        if not valid_role:
+            raise HTTPException(400, "Invalid role filter")
+        role_id = valid_role.id
+    return SuccessResponse(data=user.get_all(db, username, role_id))
+
+
+@router.put("/{id}", response_model=SuccessResponse[UserFull])
+async def update_user(
+    id: int,
+    user_in: UserUpdate,
+    current_user: Annotated[User, Depends(security.get_current_user)],
+    db: Session = Depends(deps.get_db),
+):
+    print(current_user)
+    if current_user.id != int(id):
+        raise HTTPException(401, "No permission to update user")
+    db_user = user.get_by_id(db, id)
     if not db_user:
         raise HTTPException(404, "User not found")
 
@@ -70,12 +112,17 @@ async def update_user(
     return SuccessResponse(data=updated_user)
 
 
-@router.put("/{user_id}/roles", response_model=SuccessResponse[UserFull])
+@router.put("/{id}/roles", response_model=SuccessResponse[UserFull])
 async def manage_user_roles(
-    user_id: int, user_roles: UserRoleBulkUpdate, db: Session = Depends(deps.get_db)
+    id: int,
+    user_roles: UserRoleBulkUpdate,
+    current_user: Annotated[User, Depends(security.get_current_user)],
+    db: Session = Depends(deps.get_db),
 ):
+    if not current_user.has_role("Admin"):
+        raise HTTPException(401, "Only admins can manage user roles")
     # Check that user exists
-    db_user = user.get_by_id(db, user_id)
+    db_user = user.get_by_id(db, id)
     if not db_user:
         raise HTTPException(400, "User not found")
 
@@ -87,11 +134,11 @@ async def manage_user_roles(
 
     try:
         with db.begin_nested():
-            user_role.bulk_remove(db, user_id)
+            user_role.bulk_remove(db, id)
             user_role.bulk_create(
                 db,
                 [
-                    UserRoleCreate(user_id=user_id, role_id=role_id)
+                    UserRoleCreate(user_id=id, role_id=role_id)
                     for role_id in unique_role_ids
                 ],
             )

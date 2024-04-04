@@ -1,8 +1,9 @@
 from schemas.base import GlobalBase
+from typing import Optional
 
 
 class RoleBase(GlobalBase):
-    id: int | None = None
+    id: Optional[int] = None
     name: str
 
 

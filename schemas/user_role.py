@@ -1,5 +1,6 @@
 from schemas.base import GlobalBase
 from db.types import dt
+from typing import Optional
 
 
 class UserRoleBase(GlobalBase):
@@ -17,7 +18,7 @@ class UserRoleCreate(UserRoleBase):
 
 class UserRole(UserRoleBase):
     created_at: dt
-    updated_at: dt | None
+    updated_at: Optional[dt]
 
     class Config:
         from_attributes = True

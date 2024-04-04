@@ -33,7 +33,6 @@ def update(
     db_obj = jsonable_encoder(bid_attribute_option)
     update_obj = update_in.model_dump(exclude_none=True)
     for field in db_obj:
-        print(field)
         if field in update_obj:
             setattr(bid_attribute_option, field, update_obj[field])
     db.add(bid_attribute_option)
