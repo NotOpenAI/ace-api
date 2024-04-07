@@ -94,7 +94,6 @@ async def update_user(
     current_user: Annotated[User, Depends(security.get_current_user)],
     db: Session = Depends(deps.get_db),
 ):
-    print(current_user)
     if current_user.id != int(id):
         raise HTTPException(401, "No permission to update user")
     db_user = user.get_by_id(db, id)

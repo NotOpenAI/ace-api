@@ -43,5 +43,18 @@ def get_by_id(db: Session, id: int):
     ).first()
 
 
+def get_by_name(db: Session, name: str):
+    return db.scalars(
+        select(BidAttributeType)
+        .where(BidAttributeType.name.ilike(name))
+        .options(
+            selectinload(
+                BidAttributeType.options.and_(BidAttributeOption.active == True)
+            )
+        )
+        .execution_options(populate_existing=True)
+    ).first()
+
+
 def get(db: Session):
     return db.scalars(select(BidAttributeType)).all()

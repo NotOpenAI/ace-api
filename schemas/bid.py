@@ -19,8 +19,15 @@ class BidCreate(BidBase):
     customer_id: int
     original_contract: Optional[currency] = currency(0)
     original_cost: Optional[currency] = currency(0)
-    lead: Optional[str]
+    lead: Optional[str] = None
     attributes: List[BidAttributeCreate] = []
+
+
+class BidCreateTest(BidCreate):
+    project_manager_ids: Optional[List[int]] = None
+    start_date: Optional[dt] = None
+    finish_date: Optional[dt] = None
+    name: Optional[str] = None
 
 
 class BidUpdate(GlobalBase):

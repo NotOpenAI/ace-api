@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey, CheckConstraint
+from sqlalchemy import ForeignKey
 from db.base_class import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from db.types import intpk, str_100, str_50, str_20
@@ -11,9 +11,6 @@ if TYPE_CHECKING:
 
 class CustomerContact(Base):
     __tablename__ = "customer_contact"
-    __table_args__ = (
-        CheckConstraint("NOT (email IS NULL AND phone IS NULL)", name="one_required"),
-    )
     id: Mapped[intpk] = mapped_column()
     customer_id: Mapped[int] = mapped_column(ForeignKey("customer.id"))
     customer: Mapped["Customer"] = relationship(back_populates="contacts")
