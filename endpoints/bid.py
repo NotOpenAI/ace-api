@@ -109,6 +109,7 @@ async def update_bid_attribute_type(
     "/attribute-types", response_model=SuccessResponse[list[BidAttributeTypeFull]]
 )
 async def get_bid_attribute_types(
+    current_user: Annotated[models.user.User, Depends(security.get_current_user)],
     db: Session = Depends(deps.get_db),
 ):
     bid_attribute_types = bid_attribute_type.get(db)
