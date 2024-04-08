@@ -1,7 +1,7 @@
-from sqlalchemy import ForeignKey, CheckConstraint, UniqueConstraint
+from sqlalchemy import ForeignKey, CheckConstraint
 from db.base_class import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from db.types import intpk, create_date, update_date
+from db.types import intpk, create_date, update_date, currency
 from typing import TYPE_CHECKING, Optional
 
 
@@ -21,7 +21,7 @@ class BidAttribute(Base):
     bid_id: Mapped[intpk] = mapped_column(ForeignKey("bid.id"))
     type_id: Mapped[intpk] = mapped_column(ForeignKey("lookup.bid_attribute_type.id"))
     type: Mapped["BidAttributeType"] = relationship()
-    num_val: Mapped[Optional[int]] = mapped_column()
+    num_val: Mapped[Optional[currency]] = mapped_column()
     option_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("lookup.bid_attribute_option.id")
     )

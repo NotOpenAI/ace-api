@@ -42,6 +42,7 @@ import models
 import csv
 from sqlalchemy import delete, text
 from datetime import datetime
+from db.types import currency
 
 router = APIRouter(prefix="/bids", tags=["bids"])
 
@@ -638,7 +639,7 @@ async def import_test_data(db: Session = Depends(deps.get_db)):
         bid_obj["attributes"].append(
             {
                 "type_id": retainage_percent_attr.id,
-                "num_val": int(float(retainage_percent)),
+                "num_val": currency(retainage_percent),
             }
         )
 
@@ -695,7 +696,7 @@ async def import_test_data(db: Session = Depends(deps.get_db)):
         margin = row[26].strip().replace("%", "")
         margin_attr = bid_attribute_type.get_by_name(db, "margin")
         bid_obj["attributes"].append(
-            {"type_id": margin_attr.id, "num_val": int(margin)}
+            {"type_id": margin_attr.id, "num_val": currency(margin)}
         )
         bids.append(BidCreateTest(**bid_obj))
 

@@ -52,6 +52,8 @@ class BidFull(BidBase):
     id: int
     bid_managers: List[User]
     project_managers: List[User]
+    original_contract: Optional[currency]
+    original_cost: Optional[currency]
     lead: Optional[str]
     foreman: Optional[str]
     customer: Customer
@@ -68,6 +70,10 @@ class BidFull(BidBase):
 class Bid(BidBase):
     id: int
     lead: Optional[str]
+    original_contract: Optional[currency]
+    original_cost: Optional[currency]
+    bid_managers: List[User]
+    project_managers: List[User]
     foreman: Optional[str]
     customer: Customer
     start_date: Optional[dt]
