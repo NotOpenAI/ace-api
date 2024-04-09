@@ -158,8 +158,7 @@ async def update_bid(
     bid_obj = bid.get_by_id(bid_id, db)
     if not bid_obj:
         raise HTTPException(404, "Bid not found")
-    if not any(bm.id == current_user.id for bm in bid_obj.bid_managers):
-        raise HTTPException(401, "You do not have permission to manage this bid")
+
     try:
         with db.begin_nested():
             if bid_in.bid_manager_ids and len(bid_in.bid_manager_ids):
