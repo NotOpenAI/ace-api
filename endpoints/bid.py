@@ -362,7 +362,7 @@ async def import_test_data(db: Session = Depends(deps.get_db)):
             first_name="Kellah",
             last_name="Alford",
             password="password",
-            role_ids=[1, 2, 3],
+            role_ids=[2, 3],
         ),
     )
     user.create(
@@ -372,7 +372,7 @@ async def import_test_data(db: Session = Depends(deps.get_db)):
             first_name="Ethan",
             last_name="Testa",
             password="password",
-            role_ids=[1, 2, 3],
+            role_ids=[2, 3],
         ),
     )
     user.create(
@@ -382,7 +382,7 @@ async def import_test_data(db: Session = Depends(deps.get_db)):
             first_name="Michael",
             last_name="Johnston",
             password="password",
-            role_ids=[1, 2, 3],
+            role_ids=[2, 3],
         ),
     )
     user.create(
@@ -392,7 +392,7 @@ async def import_test_data(db: Session = Depends(deps.get_db)):
             first_name="Melissa",
             last_name="Geska",
             password="password",
-            role_ids=[1, 2, 3],
+            role_ids=[2, 3],
         ),
     )
     user.create(
@@ -402,7 +402,7 @@ async def import_test_data(db: Session = Depends(deps.get_db)):
             first_name="Riley",
             last_name="Emmerson",
             password="password",
-            role_ids=[1, 2, 3],
+            role_ids=[2, 3],
         ),
     )
     user.create(
@@ -412,7 +412,7 @@ async def import_test_data(db: Session = Depends(deps.get_db)):
             first_name="Mike",
             last_name="Fitzgerald",
             password="password",
-            role_ids=[1, 2, 3],
+            role_ids=[2, 3],
         ),
     )
     user.create(
@@ -422,7 +422,7 @@ async def import_test_data(db: Session = Depends(deps.get_db)):
             first_name="Ed",
             last_name="Geska",
             password="password",
-            role_ids=[1, 2, 3],
+            role_ids=[2, 3],
         ),
     )
     user.create(
@@ -432,7 +432,7 @@ async def import_test_data(db: Session = Depends(deps.get_db)):
             first_name="Geriann",
             last_name="Alford",
             password="password",
-            role_ids=[1, 2, 3],
+            role_ids=[2, 3],
         ),
     )
     user.create(
@@ -442,7 +442,7 @@ async def import_test_data(db: Session = Depends(deps.get_db)):
             first_name="Gary",
             last_name="Black",
             password="password",
-            role_ids=[1, 2, 3],
+            role_ids=[2, 3],
         ),
     )
     user.create(
@@ -452,7 +452,7 @@ async def import_test_data(db: Session = Depends(deps.get_db)):
             first_name="Ryan",
             last_name="Crowley",
             password="password",
-            role_ids=[1, 2, 3],
+            role_ids=[2, 3],
         ),
     )
     user.create(
@@ -462,7 +462,7 @@ async def import_test_data(db: Session = Depends(deps.get_db)):
             first_name="John",
             last_name="Cahill",
             password="password",
-            role_ids=[1, 2, 3],
+            role_ids=[2, 3],
         ),
     )
     user.create(
@@ -472,7 +472,7 @@ async def import_test_data(db: Session = Depends(deps.get_db)):
             first_name="Brad",
             last_name="Osterling",
             password="password",
-            role_ids=[1, 2, 3],
+            role_ids=[2, 3],
         ),
     )
     user.create(
@@ -482,7 +482,7 @@ async def import_test_data(db: Session = Depends(deps.get_db)):
             first_name="J",
             last_name="Cisneros",
             password="password",
-            role_ids=[1, 2, 3],
+            role_ids=[2, 3],
         ),
     )
     user.create(
@@ -491,6 +491,16 @@ async def import_test_data(db: Session = Depends(deps.get_db)):
             username="agarcia",
             first_name="Angel",
             last_name="Garcia",
+            password="password",
+            role_ids=[2, 3],
+        ),
+    )
+    user.create(
+        db,
+        UserCreate(
+            username="adminacc",
+            first_name="admin",
+            last_name="acc",
             password="password",
             role_ids=[1, 2, 3],
         ),
