@@ -56,6 +56,7 @@ def get_all(
         stmt = stmt.where(User.username.icontains(username))
     if role_id:
         stmt = stmt.where(User.role_associations.any(UserRole.role_id == role_id))
+
     return db.scalars(stmt).all()
 
 

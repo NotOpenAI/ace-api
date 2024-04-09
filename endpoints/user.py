@@ -84,7 +84,8 @@ async def get_users(
         if not valid_role:
             raise HTTPException(400, "Invalid role filter")
         role_id = valid_role.id
-    return SuccessResponse(data=user.get_all(db, username, role_id))
+
+    return SuccessResponse(data=user.get_all(db, username=username, role_id=role_id))
 
 
 @router.put("/{id}", response_model=SuccessResponse[UserFull])
