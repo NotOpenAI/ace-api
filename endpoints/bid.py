@@ -28,7 +28,7 @@ from schemas.bid_attribute_type import (
     BidAttributeTypeFull,
 )
 from schemas.base import SuccessResponse
-from schemas.bid import BidFull, BidCreate, BidUpdate, Bid, BidCreateTest
+from schemas.bid import BidFull, BidCreate, BidUpdate, Bid
 from schemas.bid_attribute import BidAttributeCreateDB
 from schemas.bid_attribute_option import (
     BidAttributeOptionCreateDB,
@@ -153,8 +153,10 @@ async def update_bid(
     db: Session = Depends(deps.get_db),
 ):
     """Update a bid's attributes"""
-    if not current_user.has_role("Bid Manager"):
-        raise HTTPException(401, "Only bid managers can update bids")
+    if not current_user.has_role("Bid Manager") or not current_user.has_role(
+        "Project Manager"
+    ):
+        raise HTTPException(401, "Need to have bid manager or project manager role")
     bid_obj = bid.get_by_id(bid_id, db)
     if not bid_obj:
         raise HTTPException(404, "Bid not found")
@@ -211,8 +213,10 @@ async def get_bid(
     current_user: Annotated[models.user.User, Depends(security.get_current_user)],
     db: Session = Depends(deps.get_db),
 ):
-    if not current_user.has_role("Bid Manager"):
-        raise HTTPException(401, "Missing Bid Manager role")
+    if not current_user.has_role("Bid Manager") or not current_user.has_role(
+        "Project Manager"
+    ):
+        raise HTTPException(401, "Need to have bid manager or project manager role")
     bid_obj = bid.get_by_id(bid_id, db)
     if not bid_obj:
         raise HTTPException(404, "Bid not found")
@@ -227,8 +231,10 @@ async def get_bids(
     db: Session = Depends(deps.get_db),
 ):
     customer_id = None
-    if not current_user.has_role("Bid Manager"):
-        raise HTTPException(401, "Missing Bid Manager role")
+    if not current_user.has_role("Bid Manager") or not current_user.has_role(
+        "Project Manager"
+    ):
+        raise HTTPException(401, "Need to have bid manager or project manager role")
 
     if bid_manager_ids and len(bid_manager_ids):
         bm_role = role.get_role_by_name(db, "Bid Manager")
@@ -707,7 +713,7 @@ async def import_test_data(db: Session = Depends(deps.get_db)):
         bid_obj["attributes"].append(
             {"type_id": margin_attr.id, "num_val": currency(margin)}
         )
-        bids.append(BidCreateTest(**bid_obj))
+        bids.append(BidCreate(**bid_obj))
 
     for bid_obj in bids:
         new_bid = models.bid.Bid(
