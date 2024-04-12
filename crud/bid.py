@@ -11,13 +11,25 @@ from typing import Optional, List
 
 def create(db: Session, bid: BidCreate):
     new_bid = Bid(
-        **bid.model_dump(exclude={"attributes": True, "bid_manager_ids": True}),
+        **bid.model_dump(
+            exclude={
+                "attributes": True,
+                "bid_manager_ids": True,
+                "project_manager_ids": True,
+            }
+        ),
         attributes=[
             BidAttribute(**attribute.model_dump(exclude_unset=True))
             for attribute in bid.attributes
         ],
-        bm_associations=[BidManager(manager_id=id) for id in bid.bid_manager_ids]
+        bm_associations=[BidManager(manager_id=id) for id in bid.bid_manager_ids],
     )
+    if bid.project_manager_ids:
+        setattr(
+            new_bid,
+            "pm_associations",
+            [ProjectManager(manager_id=id) for id in bid.project_manager_ids],
+        )
     db.add(new_bid)
     return new_bid
 

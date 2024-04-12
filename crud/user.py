@@ -33,6 +33,15 @@ def get_by_username(db: Session, username: str, role_id: Optional[int] = None):
     return db.scalars(query).first()
 
 
+def get_by_name(db: Session, first_name: str, last_name: str):
+    query = (
+        select(User)
+        .where(User.first_name.ilike(first_name))
+        .where(User.last_name.ilike(last_name))
+    )
+    return db.scalars(query).first()
+
+
 def get_all(
     db: Session,
     user_ids: Optional[List[int]] = None,
@@ -47,6 +56,7 @@ def get_all(
         stmt = stmt.where(User.username.icontains(username))
     if role_id:
         stmt = stmt.where(User.role_associations.any(UserRole.role_id == role_id))
+
     return db.scalars(stmt).all()
 
 

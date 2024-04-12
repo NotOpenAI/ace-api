@@ -1,12 +1,12 @@
 from schemas.base import GlobalBase
-from db.types import dt
+from db.types import dt, currency
 from schemas.bid_attribute_type import BidAttributeType
 from schemas.bid_attribute_option import BidAttributeOption
 from typing import Optional, List, Set
 
 
 class BidAttributeBase(GlobalBase):
-    num_val: Optional[int] = None
+    num_val: Optional[currency] = None
 
 
 class BidAttributeCreate(BidAttributeBase):

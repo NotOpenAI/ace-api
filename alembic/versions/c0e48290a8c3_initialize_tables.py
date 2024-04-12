@@ -1,8 +1,8 @@
-"""initial tables
+"""initialize tables
 
-Revision ID: fd917d4ee91a
+Revision ID: c0e48290a8c3
 Revises: 
-Create Date: 2024-03-22 23:57:15.629981
+Create Date: 2024-04-07 01:27:18.489228
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "fd917d4ee91a"
+revision: str = "c0e48290a8c3"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -42,7 +42,7 @@ def upgrade() -> None:
     op.create_table(
         "bid_attribute_type",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("name", sa.String(length=20), nullable=False),
+        sa.Column("name", sa.String(length=50), nullable=False),
         sa.Column("active", sa.Boolean(), nullable=False),
         sa.Column("required", sa.Boolean(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
@@ -107,9 +107,6 @@ def upgrade() -> None:
         sa.Column("name", sa.String(length=50), nullable=False),
         sa.Column("email", sa.String(length=100), nullable=True),
         sa.Column("phone", sa.String(length=20), nullable=True),
-        sa.CheckConstraint(
-            "NOT (email IS NULL AND phone IS NULL)", name="one_required"
-        ),
         sa.ForeignKeyConstraint(
             ["customer_id"],
             ["customer.id"],
@@ -145,7 +142,6 @@ def upgrade() -> None:
     )
     op.create_table(
         "bid_attribute",
-        sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("bid_id", sa.Integer(), nullable=False),
         sa.Column("type_id", sa.Integer(), nullable=False),
         sa.Column("num_val", sa.Integer(), nullable=True),
@@ -173,8 +169,7 @@ def upgrade() -> None:
             ["type_id"],
             ["lookup.bid_attribute_type.id"],
         ),
-        sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("bid_id", "type_id"),
+        sa.PrimaryKeyConstraint("bid_id", "type_id"),
     )
     op.create_table(
         "bid_manager",

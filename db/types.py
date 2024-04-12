@@ -6,7 +6,7 @@ from decimal import Decimal
 
 intpk = Annotated[int, mapped_column(primary_key=True)]
 int_def_0 = Annotated[int, mapped_column(default=0)]
-currency = Annotated[Decimal, mapped_column(Numeric(15, 2), default=0)]
+currency = Annotated[Decimal, mapped_column(Numeric(15, 2))]
 str_20 = Annotated[str, mapped_column(String(20))]
 str_50 = Annotated[str, mapped_column(String(50))]
 str_100 = Annotated[str, mapped_column(String(100))]

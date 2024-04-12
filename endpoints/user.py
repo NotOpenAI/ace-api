@@ -84,7 +84,8 @@ async def get_users(
         if not valid_role:
             raise HTTPException(400, "Invalid role filter")
         role_id = valid_role.id
-    return SuccessResponse(data=user.get_all(db, username, role_id))
+
+    return SuccessResponse(data=user.get_all(db, username=username, role_id=role_id))
 
 
 @router.put("/{id}", response_model=SuccessResponse[UserFull])
@@ -94,7 +95,6 @@ async def update_user(
     current_user: Annotated[User, Depends(security.get_current_user)],
     db: Session = Depends(deps.get_db),
 ):
-    print(current_user)
     if current_user.id != int(id):
         raise HTTPException(401, "No permission to update user")
     db_user = user.get_by_id(db, id)
