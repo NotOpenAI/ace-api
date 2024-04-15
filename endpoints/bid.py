@@ -7,17 +7,22 @@ from crud import (
     bid_attribute_option,
     role,
     customer as customercrud,
+    bid_status,
+    job_status as job_status_crud,
 )
 from fastapi import APIRouter, Depends, HTTPException
 from core import deps, security
 import models.bid
 import models.bid_attribute
 import models.bid_manager
+import models.comment
 import models.customer
 import models.customer_contact
 import models.lookup
 import models.lookup.bid_attribute_option
 import models.lookup.bid_attribute_type
+import models.lookup.bid_status
+import models.lookup.job_status
 import models.lookup.role
 import models.project_manager
 import models.user
@@ -28,7 +33,7 @@ from schemas.bid_attribute_type import (
     BidAttributeTypeFull,
 )
 from schemas.base import SuccessResponse
-from schemas.bid import BidFull, BidCreate, BidUpdate, Bid
+from schemas.bid import BidFull, BidCreate, BidUpdate, Bid, CommentCreate
 from schemas.bid_attribute import BidAttributeCreateDB
 from schemas.bid_attribute_option import (
     BidAttributeOptionCreateDB,
@@ -37,6 +42,8 @@ from schemas.role import RoleCreate
 from schemas.user import UserCreate
 from schemas.customer import CustomerCreate
 from schemas.customer_contact import CustomerContactCreate
+from schemas.bid_status import BidStatusCreate
+from schemas.job_status import JobStatusCreate
 from typing import Annotated, Optional, List
 import models
 import csv
@@ -135,6 +142,10 @@ async def create_bid(
             raise HTTPException(400, "Invalid bid manager id(s)")
     try:
         with db.begin_nested():
+            bid_in.new_comments = [
+                CommentCreate(text=comment.text, author_id=current_user.id)
+                for comment in bid_in.new_comments
+            ]
             new_bid = bid.create(db, bid_in)
             db.commit()
     except Exception as e:
@@ -177,6 +188,12 @@ async def update_bid(
                 )
                 if len(valid_project_managers) != len(bid_in.project_manager_ids):
                     raise HTTPException(400, "Invalid project manager id(s)")
+            bid_in.new_comments = [
+                CommentCreate(
+                    text=comment.text, author_id=current_user.id, bid_id=bid_id
+                )
+                for comment in bid_in.new_comments
+            ]
             updated_bid = bid.update(db, bid_obj, bid_in)
             if bid_in.attributes:
                 if bid_in.attributes.deleted_attributes:
@@ -253,6 +270,7 @@ async def get_bids(
 async def import_test_data(db: Session = Depends(deps.get_db)):
     # Delete existing data
     db.execute(delete(models.bid_attribute.BidAttribute))
+    db.execute(delete(models.comment.Comment))
     db.execute(delete(models.bid_manager.BidManager))
     db.execute(delete(models.project_manager.ProjectManager))
     db.execute(delete(models.user_role.UserRole))
@@ -260,6 +278,8 @@ async def import_test_data(db: Session = Depends(deps.get_db)):
     db.execute(text("ALTER SEQUENCE user_id_seq RESTART WITH 1"))
     db.execute(delete(models.bid.Bid))
     db.execute(text("ALTER SEQUENCE bid_id_seq RESTART WITH 1"))
+    db.execute(delete(models.lookup.bid_status.BidStatus))
+    db.execute(delete(models.lookup.job_status.JobStatus))
     db.execute(delete(models.customer_contact.CustomerContact))
     db.execute(text("ALTER SEQUENCE customer_contact_id_seq RESTART WITH 1"))
     db.execute(delete(models.customer.Customer))
@@ -270,6 +290,8 @@ async def import_test_data(db: Session = Depends(deps.get_db)):
     db.execute(text("ALTER SEQUENCE lookup.bid_attribute_option_id_seq RESTART WITH 1"))
     db.execute(delete(models.lookup.bid_attribute_type.BidAttributeType))
     db.execute(text("ALTER SEQUENCE lookup.bid_attribute_type_id_seq RESTART WITH 1"))
+    db.execute(text("ALTER SEQUENCE lookup.bid_status_id_seq RESTART WITH 1"))
+    db.execute(text("ALTER SEQUENCE lookup.job_status_id_seq RESTART WITH 1"))
 
     # Create bid attribute types
     bid_attribute_type.create(
@@ -287,17 +309,7 @@ async def import_test_data(db: Session = Depends(deps.get_db)):
             ],
         ),
     )
-    bid_attribute_type.create(
-        db,
-        BidAttributeTypeCreate(
-            name="job_status",
-            options=[
-                {"value": "Active"},
-                {"value": "Completed"},
-                {"value": "Rejected"},
-            ],
-        ),
-    )
+
     bid_attribute_type.create(
         db,
         BidAttributeTypeCreate(
@@ -355,10 +367,26 @@ async def import_test_data(db: Session = Depends(deps.get_db)):
     admin_role = role.create(db, RoleCreate(name="Admin"))
     bm_role = role.create(db, RoleCreate(name="Bid Manager"))
     pm_role = role.create(db, RoleCreate(name="Project Manager"))
+
+    # Create bid statuses
+    bid_status.create(db, BidStatusCreate(value="New"))
+    bid_status.create(db, BidStatusCreate(value="Rejected"))
+    accepted_bid_status = bid_status.create(db, BidStatusCreate(value="Accepted"))
+
+    # Create job statuses
+    active_job_status = job_status_crud.create(db, JobStatusCreate(value="Active"))
+    completed_job_status = job_status_crud.create(
+        db, JobStatusCreate(value="Completed")
+    )
+
+    # Commit and refresh so they can be used
     db.commit()
     db.refresh(admin_role)
     db.refresh(bm_role)
     db.refresh(pm_role)
+    db.refresh(accepted_bid_status)
+    db.refresh(active_job_status)
+    db.refresh(completed_job_status)
 
     # Create users
     user.create(
@@ -563,11 +591,17 @@ async def import_test_data(db: Session = Depends(deps.get_db)):
         if not customer_name:
             customer_name = row[1].strip()
         customer = customercrud.get_by_name(db, customer_name)
+        job_status = row[7].strip()
+
         bid_obj = {
             "name": row[1].strip(),
             "customer_id": customer.id,
             "original_contract": convert_currency_to_int(row[11]),
-            "original_cost": convert_currency_to_int(row[12]),
+            "final_cost": convert_currency_to_int(row[12]),
+            "job_status_id": active_job_status.id
+            if job_status == "A"
+            else completed_job_status.id,
+            "bid_status_id": accepted_bid_status.id,
         }
 
         start_date = row[14].strip()
@@ -607,20 +641,6 @@ async def import_test_data(db: Session = Depends(deps.get_db)):
             bid_obj["attributes"].append(
                 {"type_id": project_class_attr.id, "option_id": option.id}
             )
-
-        job_status = row[7].strip()
-        job_status_attr = bid_attribute_type.get_by_name(db, "job_status")
-        if job_status == "A":
-            option = next(
-                opt for opt in job_status_attr.options if opt.value == "Active"
-            )
-        else:
-            option = next(
-                opt for opt in job_status_attr.options if opt.value == "Completed"
-            )
-        bid_obj["attributes"].append(
-            {"type_id": job_status_attr.id, "option_id": option.id}
-        )
 
         tax_pr_desc = row[8].strip()
         if tax_pr_desc:
@@ -708,38 +728,10 @@ async def import_test_data(db: Session = Depends(deps.get_db)):
                 }
             )
 
-        margin = row[26].strip().replace("%", "")
-        margin_attr = bid_attribute_type.get_by_name(db, "margin")
-        bid_obj["attributes"].append(
-            {"type_id": margin_attr.id, "num_val": currency(margin)}
-        )
         bids.append(BidCreate(**bid_obj))
 
     for bid_obj in bids:
-        new_bid = models.bid.Bid(
-            **bid_obj.model_dump(
-                exclude={
-                    "attributes": True,
-                    "bid_manager_ids": True,
-                    "project_manager_ids": True,
-                }
-            ),
-            attributes=[
-                models.bid_attribute.BidAttribute(
-                    **attribute.model_dump(exclude_unset=True)
-                )
-                for attribute in bid_obj.attributes
-            ],
-            bm_associations=[
-                models.bid_manager.BidManager(manager_id=id)
-                for id in bid_obj.bid_manager_ids
-            ],
-            pm_associations=[
-                models.project_manager.ProjectManager(manager_id=id)
-                for id in bid_obj.project_manager_ids
-            ]
-        )
-        db.add(new_bid)
+        bid.create(db, bid_obj)
     db.commit()
 
     return SuccessResponse(data=bid.get(db))

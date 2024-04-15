@@ -7,6 +7,7 @@ from sqlalchemy import select, delete
 from models.bid_attribute import BidAttribute
 from fastapi.encoders import jsonable_encoder
 from typing import Optional, List
+from models.comment import Comment
 
 
 def create(db: Session, bid: BidCreate):
@@ -16,6 +17,7 @@ def create(db: Session, bid: BidCreate):
                 "attributes": True,
                 "bid_manager_ids": True,
                 "project_manager_ids": True,
+                "new_comments": True,
             }
         ),
         attributes=[
@@ -23,13 +25,14 @@ def create(db: Session, bid: BidCreate):
             for attribute in bid.attributes
         ],
         bm_associations=[BidManager(manager_id=id) for id in bid.bid_manager_ids],
+        pm_associations=[
+            ProjectManager(manager_id=id) for id in bid.project_manager_ids
+        ],
+        comments=[
+            Comment(author_id=comment.author_id, text=comment.text)
+            for comment in bid.new_comments
+        ]
     )
-    if bid.project_manager_ids:
-        setattr(
-            new_bid,
-            "pm_associations",
-            [ProjectManager(manager_id=id) for id in bid.project_manager_ids],
-        )
     db.add(new_bid)
     return new_bid
 
@@ -54,6 +57,12 @@ def update(db: Session, bid: Bid, update_in: BidUpdate):
             [ProjectManager(manager_id=id) for id in update_in.project_manager_ids],
         )
 
+    for comment in update_in.new_comments:
+        db.add(
+            Comment(
+                author_id=comment.author_id, text=comment.text, bid_id=comment.bid_id
+            )
+        )
     for field in db_obj:
         if field in update_obj:
             setattr(bid, field, update_obj[field])

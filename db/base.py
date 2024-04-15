@@ -8,5 +8,8 @@ from models.project_manager import ProjectManager
 from models.bid_manager import BidManager
 from models.bid_attribute import BidAttribute
 from models.customer_contact import CustomerContact
+from models.comment import Comment
 from models.lookup.bid_attribute_option import BidAttributeOption
 from models.lookup.bid_attribute_type import BidAttributeType
+from models.lookup.bid_status import BidStatus
+from models.lookup.job_status import JobStatus
