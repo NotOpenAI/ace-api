@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from .bid import Bid
     from .bid_manager import BidManager
     from .project_manager import ProjectManager
+    from .comment import Comment
 
 
 class User(Base):
@@ -43,6 +44,7 @@ class User(Base):
     project_associations: Mapped[List["ProjectManager"]] = relationship(
         back_populates="manager"
     )
+    comments: Mapped[List["Comment"]] = relationship(back_populates="author")
     created_at: Mapped[create_date] = mapped_column()
     updated_at: Mapped[update_date] = mapped_column()
 
