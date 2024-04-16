@@ -48,6 +48,7 @@ class BidCreate(BidBase):
     finish_date: Optional[dt] = None
     name: Optional[str] = None
     foreman: Optional[str] = None
+    desired_margin: Optional[currency] = None
     attributes: List[BidAttributeCreate] = []
 
 
@@ -61,6 +62,7 @@ class BidUpdate(GlobalBase):
     finish_date: Optional[dt] = None
     bid_status_id: Optional[int] = None
     job_status_id: Optional[int] = None
+    desired_margin: Optional[currency] = None
     original_contract: Optional[currency] = None
     new_comments: List[CommentCreate] = []
     final_cost: Optional[currency] = None

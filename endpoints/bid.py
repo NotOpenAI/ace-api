@@ -79,7 +79,7 @@ async def update_bid_attribute_type(
     db: Session = Depends(deps.get_db),
 ):
     if not current_user.has_role("Admin"):
-        raise HTTPException(401, "Only admins can create bid attribute types")
+        raise HTTPException(401, "Only admins can update bid attribute types")
     db_attribute_type = bid_attribute_type.get_by_id(db, attribute_type_id)
     if not db_attribute_type:
         raise HTTPException(404, "Bid attribute type not found")
