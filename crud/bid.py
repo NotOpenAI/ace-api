@@ -8,6 +8,7 @@ from models.bid_attribute import BidAttribute
 from fastapi.encoders import jsonable_encoder
 from typing import Optional, List
 from models.comment import Comment
+from datetime import datetime
 
 
 def create(db: Session, bid: BidCreate):
@@ -66,6 +67,10 @@ def update(db: Session, bid: Bid, update_in: BidUpdate):
     for field in db_obj:
         if field in update_obj:
             setattr(bid, field, update_obj[field])
+
+    # need this for when related values not on bid table are updated
+    setattr(bid, "updated_at", datetime.now())
+
     db.add(bid)
     return bid
 
