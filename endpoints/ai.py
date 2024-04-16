@@ -57,10 +57,10 @@ async def get_bid(
         columns=[col for col in columns_to_drop if col in data_cleaned.columns]
     )
     data_cleaned = data_cleaned.fillna(0)
-    print(data_cleaned)
 
-    X = data_cleaned.drop(columns=["final_cost", "margin"])
+    X = data_cleaned.drop(columns=["final_cost"])
     y = data_cleaned["final_cost"]
+    print(X)
 
     # Split the data
     X_train, X_test, y_train, y_test = train_test_split(
