@@ -4,9 +4,8 @@ from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 from sqlalchemy.orm import Session
 import numpy as np
-from crud import ai
+from crud import ai, bid
 from core import security, deps
-from crud.ai import get_bid_data_for_prediction
 from schemas.base import SuccessResponse
 from typing import Annotated
 from models.user import User
@@ -21,21 +20,46 @@ async def get_bid(
     # current_user: Annotated[User, Depends(security.get_current_user)],
     db: Session = Depends(deps.get_db),
 ):
-    # if not current_user.has_role("Bid Manager"):
-    #     raise HTTPException(401, "Missing Bid Manager role")
+    bid_obj = bid.get_by_id(bid_id, db)
+    if not bid_obj:
+        raise HTTPException(404, "Bid not found")
 
-    bids = get_bid_data_for_prediction(db)
+    bids = ai.get_bid_data_for_prediction(db)
+    data, original_contract = data_to_df(bid_id, bids)
+    data_cleaned = clean_data(bid_id, data)
 
+    current_bid_data = data_cleaned[data_cleaned["id"] == bid_id]
+    if current_bid_data.empty:
+        raise HTTPException(
+            status_code=404, detail="Current bid data not found for prediction"
+        )
+
+    data_cleaned = data_cleaned[data_cleaned["id"] != bid_id]
+    X_test, random_forest_model, y_test = train_model(data_cleaned)
+
+    predicted_margin = predict_margin(
+        current_bid_data.drop(columns=["id", "final_cost"]),
+        random_forest_model,
+        original_contract,
+    )
+
+    return SuccessResponse(data=predicted_margin)
+
+
+def data_to_df(bid_id, bids):
     data = []
+    original_contract = 0
     for bid in bids:
-        # exclude bid we are predicting
+        # exclude bid predicting
         if bid.id == bid_id:
-            continue  # Skip this bid and do not include it in the dataset
-
+            original_contract = (
+                bid.original_contract
+                if hasattr(bid, "original_contract")
+                else original_contract
+            )
         row = {
             column.name: getattr(bid, column.name) for column in bid.__table__.columns
         }
-
         for attribute in bid.attributes:
             attribute_name = attribute.type.name
             row[attribute_name] = (
@@ -47,20 +71,28 @@ async def get_bid(
         data.append(row)
 
     df = pd.DataFrame(data)
+    return df, original_contract
 
-    # choose columns more than 50% missing values
-    threshold = 0.4 * len(df)
-    data_cleaned = df.dropna(thresh=threshold, axis=1)
 
-    columns_to_drop = ["id", "name", "created_at", "comments"]
+def clean_data(bid_id, data):
+    # choose columns with at least 40% of data
+    threshold = 0.4 * len(data)
+    data_cleaned = data.dropna(thresh=threshold, axis=1)
+
+    columns_to_drop = ["name", "created_at", "comments", "desired_margin"]
     data_cleaned = data_cleaned.drop(
         columns=[col for col in columns_to_drop if col in data_cleaned.columns]
     )
-    data_cleaned = data_cleaned.fillna(0)
 
-    X = data_cleaned.drop(columns=["final_cost"])
+    mask = data_cleaned["id"] != bid_id
+    data_cleaned.loc[mask] = data_cleaned.loc[mask].fillna(0)
+
+    return data_cleaned
+
+
+def train_model(data_cleaned):
+    X = data_cleaned.drop(columns=["id", "final_cost"])
     y = data_cleaned["final_cost"]
-    print(X)
 
     # Split the data
     X_train, X_test, y_train, y_test = train_test_split(
@@ -70,15 +102,25 @@ async def get_bid(
     # Train the model
     random_forest_model = RandomForestRegressor(random_state=42)
     random_forest_model.fit(X_train, y_train)
+    return X_test, random_forest_model, y_test
 
-    # Predict and evaluate
-    y_pred = random_forest_model.predict(X_test)
-    mse = mean_squared_error(y_test, y_pred)
-    rmse = np.sqrt(mse)
-    r2 = r2_score(y_test, y_pred)
 
-    print("Mean Squared Error:", mse)
-    print("Root Mean Squared Error:", rmse)
-    print("R² Score:", r2)
+def predict_margin(current_bid_data, model, original_contract):
+    if current_bid_data.isnull().values.any():
+        # print(current_bid_data)
+        raise HTTPException(400, "Not enough bid information to predict.")
+    predicted_cost = model.predict(current_bid_data)
+    # print(f"predicted_cost: {predicted_cost}, original_contract: {original_contract}")
+    predicted_margin = 1 - (float(predicted_cost) / float(original_contract))
+    return predicted_margin
 
-    return SuccessResponse(data=1.0)
+
+# def evaluate_model_performance(X_test, random_forest_model, y_test):
+#     # Predict and evaluate
+#     y_pred = random_forest_model.predict(X_test)
+#     mse = mean_squared_error(y_test, y_pred)
+#     rmse = np.sqrt(mse)
+#     r2 = r2_score(y_test, y_pred)
+#     print("Mean Squared Error:", mse)
+#     print("Root Mean Squared Error:", rmse)
+#     print("R² Score:", r2)
