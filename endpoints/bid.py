@@ -361,7 +361,6 @@ async def import_test_data(db: Session = Depends(deps.get_db)):
             options=[{"value": "Clear"}, {"value": "Some"}, {"value": "Vague"}],
         ),
     )
-    bid_attribute_type.create(db, BidAttributeTypeCreate(name="margin"))
 
     # Create user roles
     admin_role = role.create(db, RoleCreate(name="Admin"))
