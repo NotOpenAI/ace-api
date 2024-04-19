@@ -11,7 +11,7 @@ app.include_router(ai.router)
 
 origins = [
     "http://localhost:5173",
-    # TODO - add deployed app url to allow traffic from it
+    "https://main.d3d48l8fmspa2b.amplifyapp.com",  # Deployed app
 ]
 
 app.add_middleware(
