@@ -50,6 +50,7 @@ import csv
 from sqlalchemy import delete, text
 from datetime import datetime
 from db.types import currency
+from sqlalchemy.exc import IntegrityError
 
 router = APIRouter(prefix="/bids", tags=["bids"])
 
@@ -84,21 +85,16 @@ async def update_bid_attribute_type(
     if not db_attribute_type:
         raise HTTPException(404, "Bid attribute type not found")
 
-    updated_bid_attribute_type = bid_attribute_type.update(
-        db, db_attribute_type, attribute_type_in
-    )
-
-    if attribute_type_in.options:
-        if attribute_type_in.options.delete_options:
-            bid_attribute_option.bulk_delete(
-                db, attribute_type_in.options.delete_options
+    try:
+        with db.begin_nested():
+            updated_bid_attribute_type = bid_attribute_type.update(
+                db, db_attribute_type, attribute_type_in
             )
-        if attribute_type_in.options.update_options:
-            for option in attribute_type_in.options.update_options:
-                db_option = bid_attribute_option.get_by_value_id(
-                    db, attribute_type_id, option.value
-                )
-                if db_option:
+
+            for option in attribute_type_in.update_options:
+                db_option = None
+                if option.id:
+                    db_option = bid_attribute_option.get_by_id(db, option.id)
                     bid_attribute_option.update(db, db_option, option)
                 else:
                     bid_attribute_option.create(
@@ -108,7 +104,18 @@ async def update_bid_attribute_type(
                             **option.model_dump(exclude_unset=True)
                         ),
                     )
-    db.commit()
+            db.commit()
+    except IntegrityError as ie:
+        print(ie)
+        db.rollback()
+        raise HTTPException(
+            400,
+            "An option with the same value already exists for this bid attribute type",
+        )
+    except Exception as e:
+        print(e)
+        db.rollback()
+        raise HTTPException(500, str(e))
     db.refresh(updated_bid_attribute_type)
     return SuccessResponse(data=updated_bid_attribute_type)
 
@@ -122,6 +129,21 @@ async def get_bid_attribute_types(
 ):
     bid_attribute_types = bid_attribute_type.get(db)
     return SuccessResponse(data=bid_attribute_types)
+
+
+@router.get(
+    "/attribute-types/{attribute_id}",
+    response_model=SuccessResponse[BidAttributeTypeFull],
+)
+async def get_bid_attribute_types(
+    attribute_id: int,
+    current_user: Annotated[models.user.User, Depends(security.get_current_user)],
+    db: Session = Depends(deps.get_db),
+):
+    attribute_type = bid_attribute_type.get_by_id(db, attribute_id)
+    if not attribute_type:
+        raise HTTPException(404, "Bid attribute type not found")
+    return SuccessResponse(data=attribute_type)
 
 
 @router.post("", response_model=SuccessResponse[BidFull])
