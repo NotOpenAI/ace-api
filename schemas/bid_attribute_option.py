@@ -17,11 +17,7 @@ class BidAttributeOptionCreateDB(BidAttributeOptionCreate):
 class BidAttributeOptionUpdate(BidAttributeOptionBase):
     id: Optional[int] = None
     active: bool = True
-
-
-class BidAttributeOptionBulkUpdate(GlobalBase):
-    update_options: Optional[list[BidAttributeOptionUpdate]] = None
-    delete_options: Optional[set[int]] = None
+    value: str
 
 
 class BidAttributeOption(BidAttributeOptionBase):

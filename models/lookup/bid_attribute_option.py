@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, UniqueConstraint
 from db.base_class import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from db.types import intpk, str_50
@@ -21,4 +21,5 @@ class BidAttributeOption(Base):
     active: Mapped[bool] = mapped_column(default=True)
     value: Mapped[str_50] = mapped_column()
     bid_attribute: Mapped["BidAttribute"] = relationship(back_populates="option")
+    UniqueConstraint("value", "attribute_type_id")
     __table_args__ = {"schema": "lookup"}

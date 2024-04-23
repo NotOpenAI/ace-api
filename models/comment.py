@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 class Comment(Base):
     __tablename__ = "comment"
     id: Mapped[intpk] = mapped_column()
-    text: Mapped[str_255] = mapped_column()
+    text: Mapped[str_text] = mapped_column()
     author_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
     author: Mapped["User"] = relationship(back_populates="comments")
     bid_id: Mapped[int] = mapped_column(ForeignKey("bid.id"))

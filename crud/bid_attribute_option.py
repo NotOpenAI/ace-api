@@ -39,12 +39,18 @@ def update(
     return bid_attribute_option
 
 
-def get_by_value_id(db: Session, type_id: int, value: str):
+def get_by_value(db: Session, type_id: int, value: str):
     return db.scalars(
         select(BidAttributeOption).where(
             (BidAttributeOption.attribute_type_id == type_id)
             & (BidAttributeOption.value == value)
         )
+    ).first()
+
+
+def get_by_id(db: Session, option_id: int):
+    return db.scalars(
+        select(BidAttributeOption).where(BidAttributeOption.id == option_id)
     ).first()
 
 
