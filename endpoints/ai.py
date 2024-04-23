@@ -24,7 +24,7 @@ async def get_bid(
     if not bid_obj:
         raise HTTPException(404, "Bid not found")
 
-    bids = ai.get_bid_datar_prediction(db)
+    bids = ai.get_bid_data_for_prediction(db)
     data, original_contract = data_to_df(bid_id, bids)
 
     data_cleaned = clean_data(bid_id, data)
