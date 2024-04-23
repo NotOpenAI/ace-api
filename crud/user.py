@@ -65,16 +65,12 @@ def update(db: Session, user: User, update_in: UserUpdate):
     db_obj = jsonable_encoder(user)
     update_obj = update_in.model_dump(exclude_unset=True)
 
-    for field in db_obj:
-        if field in update_obj:
-            # hash password before saving in db
-            if field == "password":
-                hashed_password = get_password_hash(update_obj["password"])
-                setattr(user, "hashed_password", hashed_password)
-                continue
-
-            # otherwise just update in db
+    for field in update_obj:
+        if field in db_obj:
             setattr(user, field, update_obj[field])
+        elif field == "password":
+            hashed_password = get_password_hash(update_obj["password"])
+            setattr(user, "hashed_password", hashed_password)
 
     db.add(user)
     return user
